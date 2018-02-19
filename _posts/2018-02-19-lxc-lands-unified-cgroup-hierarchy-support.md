@@ -1,7 +1,6 @@
 ---
 layout: post
 title: 'LXC Lands Unified cgroup Hierarchy Support'
-categories: 'tech,lxc,containers,cgroups'
 ---
 
 I'm excited to announce that we've recently added support the new unified
