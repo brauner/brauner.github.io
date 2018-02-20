@@ -20,53 +20,52 @@ The `CGManager` cgroup driver relies on the upstream `CGManager` project which
 was created and written by fellow `LXC` and `LXD` maintainer Serge
 Hallyn back in late 2013.
 
-The need for CGManager has been fading over the years as its main
+The need for `CGManager` has been fading over the years as its main
 features can now be achieved in more standard and efficient ways:
 - Allowing nested containers to control their own cgroups.
 - Enabling cgroup management for unprivileged users running unprivileged
   containers, i.e. containers employing user namespaces and idmappings.
 
 A first effort to deprecate CGManager happened with the inclusion of the
-new `cgfsng` cgroup driver in LXC combined with LXCFS' support for
-creating a per-container CGroup view in userspace.
+new `cgfsng` cgroup driver in LXC combined with `LXCFS` support for
+creating a per-container cgroup view in userspace.
 
-The LXCFS approach had the benefit of working with all existing software
+The `LXCFS` approach had the benefit of working with all existing software
 that would normally interact with cgroups through the filesystem and was
 also more efficient (multi-threaded) compared to the single-threaded
-DBUS API that CGManager was offering.
+`DBUS` API that `CGManager` was offering.
 
-The later inclusion of the CGroup Namespace in the mainline kernel
+The later inclusion of the cgroup namespace in the mainline kernel
 finally moved all of this into the kernel, completely removing the need
 for a userspace solution to the problem.
 
-CGManager itself is currently considered as deprecated and will not see
-any further release and so there is little point in LXC keeping support
+`CGManager` itself is currently considered as deprecated and will not see
+any further release and so there is little point in `LXC` keeping support
 for it.
 
 #### [cgfs](https://github.com/lxc/lxc/commit/1a8848b371cf2c86400f58fc64bf7ecc2cf5b261)
-The `cgfs` driver dates back from the origins of the CGroup subsystem
+The `cgfs` driver dates back from the origins of the cgroup subsystem
 and early integration in Linux distributions.
 
-At that point in time, it was somewhat common for CGroup controllers to
+At that point in time, it was somewhat common for cgroup controllers to
 all be co-mounted or be co-mounted in big chunks, often under
-/dev/cgroup or /cgroup.
+`/dev/cgroup` or `/cgroup`.
 
-LXC therefore needed a lot of logic to figure out exactly what CGroup
+`LXC` therefore needed a lot of logic to figure out exactly what cgroup
 controller could be found and where. It also had to enable a number of
 different flags to have the then widely different controllers behave in
 a similar way.
 
-
-Nowadays, all Linux distributions that setup CGroups will mount a split
+Nowadays, all Linux distributions that setup cgroups will mount a split
 layout, typically with one controller per directory under
-/sys/fs/cgroup. LXC can rely on this and so knows exactly where to find
-all CGroup controllers without having to do complex mount table parsing
+`/sys/fs/cgroup`. `LXC` can rely on this and so knows exactly where to find
+all cgroup controllers without having to do complex mount table parsing
 and guesses.
 
-That's what the `cgfsng` driver, introduced in LXC 2.0 does with the old
+That's what the `cgfsng` driver, introduced in `LXC 2.0`, does with the old
 `cgfs` driver only there as a fallback. We've very rarely witnessed that
-feedback happening and when it did, it was usually resulting in another
-failure.
+`LXC` fell back to the `cgfs` driver and if it did it usually resulted in
+another failure.
 
 As the `cgfs` driver is old, complex and hard to maintain and doesn't
 seem to actually be handling any real world use cases, it will similarly
@@ -124,7 +123,7 @@ various contributors be it from companies like Huawei, Nvidia, Red Hat or
 individual contributors sending fixes all over the place. We greatly appreciate
 this! Keep the patches coming.
 
-Christian
+Christian & Stéphane
 
 [1]: https://twitter.com/stgraber
 [1]: https://stgraber.org/
