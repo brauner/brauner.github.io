@@ -3,6 +3,8 @@ layout: post
 title: 'On The Way To LXC 3.0: Removal of cgmanager And cgfs cgroup Drivers'
 ---
 
+![alt text](https://linuxcontainers.org/static/img/containers.png)
+
 Hey everyone,
 
 This is another update about the development of `LXC 3.0`. As of yesterday the
@@ -14,22 +16,22 @@ more detail.
 
 ### [cgmanager](https://linuxcontainers.org/cgmanager/introduction/)
 The `cgmanager` cgroup driver relies on the upstream `cgmanager` project which
-as created and written by fellow `LXC` and `LXD` maintainer Serge
+was created and written by fellow `LXC` and `LXD` maintainer Serge
 Hallyn. In a time where proper userspace cgroup management was still an
 unsolved problem `cgmanager` was a stroke of genius and solved a lot of issues.
-The most prominent ones where:
+The most prominent ones were:
 - using cgroups when nesting containers
 - enabling cgroup management for unprivileged users running unprivileged
-  containers, i.e. containers emplying user namespaces and idmappings.
+  containers, i.e. containers employing user namespaces and idmappings.
 
 To this day it isn't possible to do unprivileged cgroup management. The
 upstream maintainers are opinionated in that respect and probably are
 rightly so. To delegate cgroups to unprivileged users privilege is
 required. To address this problem the `cgmanager` driver was bundled with
 the `cgmanager` daemon.
-The `cgmanager` daemon and it's driver counterpart in `LXC` were an
+The `cgmanager` daemon and its driver counterpart in `LXC` were an
 appropriate solution in a time where init systems did not do any proper
-cgroup managment. With the rise of `systemd` this changed. Nowadays,
+cgroup management. With the rise of `systemd` this changed. Nowadays,
 `systemd` is effectively its own cgroup manager. While this didn't
 necessarily had to mean the end of cgmanager it seemed unlikely that users
 would run two competing cgroup managers on the system. (To be honest, one
@@ -51,7 +53,7 @@ dead. A big thanks to Serge for coming up with this project!
 The `cgfs` driver, if I have my facts straight, stems from a time even
 before `cgmanager` was a thing. Actually, it is so old that mounting
 cgroups was not yet clearly standardized. For example, in these (dark)
-times some distros would wount cgroups at `/dev/cgroup` while others would
+times some distros would mount cgroups at `/dev/cgroup` while others would
 mount them at `/sys/fs/cgroup`. In addition some distros would mount all
 controllers into a single hierarchy located directly at `/sys/fs/cgroup`
 other distros would mount some controllers into separate hierarchies and
@@ -82,7 +84,7 @@ coding in general:
 - **code blindness**
 
   This is a general phenomenon that comes in two forms. Most developers
-  will know what I'm talking about. It either means ones has stared at a
+  will know what I'm talking about. It either means one has stared at a
   codepath for too long to really see problems anymore or it means that
   one has literally forgotten that a codepath actually exists. The
   latter is what I fear would happen with the `cgfs` driver. One day, I'd
@@ -102,26 +104,26 @@ coding in general:
   cgroup management are changing and updating all three cgroup drivers
   would be a massive undertaking and actually pointless.
 
-#### Adding New Cgroup Drivers
-This is a note to developers more than to users. The current cgroup
-driver is not the last word. It has been adapted to be compatible with
-legacy cgroup hierarchies and the unified cgroup hierarchies and
-actually also supports hybrid cgroup layouts where some controllers are
-mounted into separate legacy cgroup hierarchies and others are present
-in the unified cgroup hierarchy. But if there is a legitimate need for
-someone to come up with a different cgroup driver they should be aware
-that the way the `LXC` cgroup drivers are written is modular. In essence
-it is close to what some languages would call an "interface". New cgroup
-drivers just need to implement it. :)
+#### Adding New cgroup Drivers
+This is a note to developers more than to users. The [current `cgfsng` cgroup
+driver](https://github.com/lxc/lxc/blob/master/src/lxc/cgroups/cgfsng.c) is not
+the last word. It has been adapted to be compatible with legacy cgroup
+hierarchies and the unified cgroup hierarchies and actually also supports
+hybrid cgroup layouts where some controllers are mounted into separate legacy
+cgroup hierarchies and others are present in the unified cgroup hierarchy. But
+if there is a legitimate need for someone to come up with a different cgroup
+driver they should be aware that the way the `LXC` cgroup drivers are written
+is modular. In essence it is close to what some languages would call an
+"interface". New cgroup drivers just need to implement it. :)
 
 Removing code that has been around and was maintained for a long time is
 of course hard since a lot of effort and thought has gone into it and
 one needs to be especially careful to not regress users that still rely
 on such codepaths quite heavily. But mostly it is a sign of a healthy
-project: withing a week `LXC` got rid of `4,479` lines of code.
+project: within a week `LXC` got rid of `4,479` lines of code.
 
-At the end, I have want to say thank you to my fellow maintainers [Stéphane
-Graber][1] ([@stgraber](https://twitter.com/stgraber)) on and [Serge Hallyn][2]
+At the end, I want to say thank you to my fellow maintainers [Stéphane
+Graber][1] ([@stgraber](https://twitter.com/stgraber)) and [Serge Hallyn][2]
 ([@sehh](https://twitter.com/sehh)) for all the reviews, merges, ideas, and
 constructive criticism over all those months. And of course, thanks to all the
 various contributors be it from companies like Huawei, Nvidia, Red Hat or

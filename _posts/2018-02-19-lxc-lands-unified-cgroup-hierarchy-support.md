@@ -3,6 +3,8 @@ layout: post
 title: 'LXC Lands Unified cgroup Hierarchy Support'
 ---
 
+![alt text](https://linuxcontainers.org/static/img/containers.png)
+
 I'm excited to announce that we've recently added support the new unified
 cgroup hierarchy (or cgroup v2, cgroup2) to LXC. This includes running system
 containers that know about the unified cgroup hierarchy and application
