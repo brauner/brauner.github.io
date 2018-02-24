@@ -14,7 +14,7 @@ the unified cgroup hierarchy here. But if you're interested you can watch my
 talk at last year's Container Camp Sydney
 
 [![**Here be dragons**: some of what I say is likely invalid by now or I've come
-up with simpler solutions.](http://img.youtube.com/vi/P6Xnm0IhiSo/0.jpg)](https://www.youtube.com/watch?v=)
+up with simpler solutions.](http://img.youtube.com/vi/P6Xnm0IhiSo/0.jpg)](https://www.youtube.com/watch?v=P6Xnm0IhiSo)
 
 ### Currently existing cgroup layouts
 
