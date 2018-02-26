@@ -1,5 +1,16 @@
 theme: minima
+title: brauner's blog
+author: Christian Brauner
 google_analytics: UA-114731872-1
+markdown: kramdown
 timezone: Europe/Berlin
 twitter_username: brau_ner
 github_username: brauner
+facebook_username: freiherrgarbage
+instagram_username: +ChristianBrauner
+linkedin_username: christian-brauner-586185110
+show_excerpts: true
+disqus:
+  shortname: https-brauner-github-io
+plugins:
+  - jekyll-feed
