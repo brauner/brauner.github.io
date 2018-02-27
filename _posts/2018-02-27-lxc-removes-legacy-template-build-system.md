@@ -18,8 +18,9 @@ repositories.
 The lua language bindings will be moved into the new
 [lua-lxc](https://github.com/lxc/lua-lxc) repository and the Python 3 bindings
 to the new [python3-lxc](https://github.com/lxc/python3-lxc) repository.
-This is in line with what we already did for the Python 2 bindings which were
-moved into the [python2-lxc](https://github.com/lxc/python2-lxc) some time ago.
+This is in line with other language bindings like Python 2 (see
+[python2-lxc](https://github.com/lxc/python2-lxc)) that were always kept out of
+tree.
 
 #### Splitting Out The Legacy Template Build System
 
