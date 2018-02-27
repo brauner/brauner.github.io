@@ -19,8 +19,8 @@ Furthermore, various `LXC` templates will be moved to the new
 [lxc-templates](https://github.com/lxc/lxc-templates) repository as they will
 soon be replaced by [distrobuilder](https://github.com/lxc/distrobuilder) as
 the preferred way to build `LXC` and `LXD` images locally.
-This is a project my colleague [Thomas Hipp](https://github.com/monstermunchkin)
-is currently working on. It aims to be a very simple GO project focussed on
+This is a project my colleague [Thomas](https://github.com/monstermunchkin)
+is currently working on. It aims to be a very simple Go project focussed on
 letting you easily build full system container images by either **using the
 official cloud image** if one is provided by the distro or by **using the
 respective distro's recommended tooling** (e.g. `debootstrap` for `Debian` or
