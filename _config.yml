@@ -2,7 +2,6 @@ theme: minima
 title: brauner's blog
 author: Christian Brauner
 google_analytics: UA-114731872-1
-markdown: kramdown
 timezone: Europe/Berlin
 twitter_username: brau_ner
 github_username: brauner
@@ -14,3 +13,7 @@ disqus:
   shortname: https-brauner-github-io
 plugins:
   - jekyll-feed
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
