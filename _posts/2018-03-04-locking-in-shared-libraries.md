@@ -304,4 +304,23 @@ obviously is the prime example but also the general
 To be fair, we've never had issues before as mutexes were extremely rare in the
 first place but one should always remember that no locking is the best locking. :)
 
+#### Addendum
+
+##### 2018-03-06
+
+Coming back once more to the point about running atfork handlers. Atfork
+handlers are of course an implementation detail in the `pthread` and `POSIX`
+world. They are by no means a conceptual necessity when it comes to mutexes. But
+some standard is better than no standard when it comes to system's design. Any
+decent libc implementation supporting `pthread` will very likely also support
+atfork handlers (even `Bionic` has gained atfork support along the way). But
+this immediately raises another problem as it requires programming languages on
+`POSIX` systems to go through the system's libc when doing a `fork()`. If they
+don't then atfork handlers won't be run even if you call `fork()`. One prime
+example is `Go`. The `syscall` and `sys/unix` packages will **not** go through
+the system's libc. They will directly do the corresponding syscall. So atfork
+handlers are not available when `fork()`ing in `Go`. Now, `Go` is a little
+special as it doesn't support `fork()` properly in the first place because of
+all the reasons (and more) I outlined above.
+
 Christian
