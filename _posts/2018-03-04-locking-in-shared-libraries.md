@@ -308,19 +308,40 @@ first place but one should always remember that no locking is the best locking. 
 
 ##### 2018-03-06
 
-Coming back once more to the point about running atfork handlers. Atfork
-handlers are of course an implementation detail in the `pthread` and `POSIX`
-world. They are by no means a conceptual necessity when it comes to mutexes. But
-some standard is better than no standard when it comes to system's design. Any
-decent libc implementation supporting `pthread` will very likely also support
-atfork handlers (even `Bionic` has gained atfork support along the way). But
-this immediately raises another problem as it requires programming languages on
-`POSIX` systems to go through the system's libc when doing a `fork()`. If they
-don't then atfork handlers won't be run even if you call `fork()`. One prime
-example is `Go`. The `syscall` and `sys/unix` packages will **not** go through
-the system's libc. They will directly do the corresponding syscall. So atfork
-handlers are not available when `fork()`ing in `Go`. Now, `Go` is a little
-special as it doesn't support `fork()` properly in the first place because of
-all the reasons (and more) I outlined above.
+- Coming back once more to the point about running atfork handlers. Atfork
+  handlers are of course an implementation detail in the `pthread` and `POSIX`
+  world. They are by no means a conceptual necessity when it comes to mutexes.
+  But some standard is better than no standard when it comes to system's
+  design. Any decent libc implementation supporting `pthread` will very likely
+  also support atfork handlers (even `Bionic` has gained atfork support along
+  the way). But this immediately raises another problem as it requires
+  programming languages on `POSIX` systems to go through the system's libc when
+  doing a `fork()`. If they don't then atfork handlers won't be run even if you
+  call `fork()`. One prime example is `Go`. The `syscall` and `sys/unix`
+  packages will **not** go through the system's libc. They will directly do the
+  corresponding syscall. So atfork handlers are not available when `fork()`ing
+  in `Go`. Now, `Go` is a little special as it doesn't support `fork()`
+  properly in the first place because of all the reasons (and more) I outlined
+  above.
+- `Solaris`:
+
+  Let's talk about `Solaris` for a minute. Before I said
+
+  > The way `fork()`ing in threads works is that only the thread that called
+  `fork()` gets duplicated in the child, the others are terminated.
+
+  That is an implementation detail of the `pthread` world. There are other
+  implementations that don't terminate all other threads but the calling
+  thread. One example are `Solaris Threads` (or as I like to call it
+  `sthread`). Actually, - hold on to your seats - `sthread`s support both
+  semantics. Specifically, the `sthread` implementation used to have `fork1()`
+  and `fork()` where `fork1()` would only duplicate the `fork1()`ing thread and
+  `fork()` would duplicate **all threads**. The `fork()` behavior was obviously
+  dependent on whether you linked with `-lpthread` or `-lthread` on `Solaris`
+  which of course was a massive source of confusion. (Changing the behavior of
+  functions depening on linker flags seeems like a good way into anarchy.) So
+  `Solaris` started enforcing `pthread` semantics for `fork()` for both
+  `-lthread` and `-lpthread` and added `forkall()` to support duplicating all
+  threads.
 
 Christian
