@@ -6,9 +6,9 @@ timezone: Europe/Berlin
 twitter_username: brau_ner
 github_username: brauner
 facebook_username: freiherrgarbage
-instagram_username: +ChristianBrauner
+instagram_username: brau_ner
 linkedin_username: christian-brauner-586185110
-show_excerpts: true
+show_excerpts: false
 disqus:
   shortname: https-brauner-github-io
 plugins:
