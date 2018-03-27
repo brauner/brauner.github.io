@@ -1,0 +1,73 @@
+==================================================================
+https://keybase.io/brauner
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://brauner.github.io
+  * I am brauner (https://keybase.io/brauner) on keybase.
+  * I have a public key with fingerprint 4880 B8C9 BD0E 5106 FC07  0F4F 7B3C 391E FEA9 3624
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "01015b1f744682f715067b685e4290cded6fd89eaad16c2a21757217fd13a434acec0a",
+      "fingerprint": "4880b8c9bd0e5106fc070f4f7b3c391efea93624",
+      "host": "keybase.io",
+      "key_id": "7b3c391efea93624",
+      "kid": "01015b1f744682f715067b685e4290cded6fd89eaad16c2a21757217fd13a434acec0a",
+      "uid": "eb9e7c763944045ec66741c23e844419",
+      "username": "brauner"
+    },
+    "service": {
+      "hostname": "brauner.github.io",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 1
+  },
+  "ctime": 1522193490,
+  "expire_in": 157680000,
+  "prev": "096efa49323bd6060c328d7385d64ffcd18730e35f63b61131e52414abe5a288",
+  "seqno": 6,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+-----BEGIN PGP MESSAGE-----
+
+owGtUn1MVWUcvnzVIJGg1dRQ9DBQ4QLn++M2ZLpsi+QGIdwpurvz8Z7L4cI9l3MP
+XyOzCAKtDIhMoBGfbhkGSmaK0PVqiXOAjo8wksGQpg20DWoIGp1j+Udbf/b+8b57
+f+/zPO/z/ParDPQxBHgd6Uwf2TZ7Ksbr2l3OsPf8sLUY4mShCDIVQ3bw+ADZAnCp
+VrskQCYIRmCE4BCRwnGSRkUKIWCS4kiaADjKwLwABFIUaAawrICQPMqiCEVQ2iYK
+CMbiGM7ygIdZyAiJksMGFKciOVRNFqdpmKN5hhNgQCAwKfIwBYu4SHEYjzEIEAHL
+YCSKa8RM2aUzNHMc6wKxkqzVtIv1sb3/wP/PvvMeywGOARRPkRiD4zBOAJ4kKRzh
+UQzQOI4jjA50AcXB5gANzSlsngMo0AEjpBXzJR7ofdWD/BsQa5PUzDzu70xORVZl
+Xs7WnjNV1eky6XS1yKnjCwBn/UfJykkOQeulxsgHikuSHZAJ0ZC8KunSCIGiCIPh
+DGyEQKFTUoBV0hEERdKwtvR/QL7eIIbcB0QWZzAU4wQSJmEeQ2mBwmhCIHFR5AWE
+pjAYYIRIYhyJIBgCCBRHcJYDBIvSNKSHy3XIkInUfLI2TdMl2RysmqcA6EDAIW/M
+1+AVYFj/wibfuW67Ml0V02N5Ixh+Mn9+3vrwGQL8n31S+XogaNmv49fOd8sNno7p
+U6meys0fVJy7FVmbfOLeBGU+u/uKZ049bWlKubi2egG7tIimWRJNs8dDHWdTt+90
+ut9DFHOQ1JuhBl3pNd+sdrijh5riHw5RR8NM7d+2iZ+NdW0g0+67zoWzs307puZj
+/acGaaxfXiQTIidSu4NGX/GfdFcevFFzPJQZW2sJachO3e8x+++cYVbeeXsBwsMz
+v2vLmXxgjQwf6qR/Ofz9SldT84XxsU2/S6t2XBYb3CPDRut81PyHzYv2gZsReHVu
+V8Qta2nP65UV3i2X7vfUxrVJLyZl/Lb7x9axwTrj8tKZNfatNb3FNc2u4O6987GB
+cyUUHTGhzFXF/TxSkuA+MRq/3h4VH1OfcrW/OWvkmjnzwRbX+0GNiXtCCq5KXUML
+7V8+XXG9/m51VUuZf8zp8qLSFSTpdvgPfWegsvmwN39q/6MSPIUvR5N5z73051cr
+Wd5x2zd+3pAxZZZ91tWfL2t2+71cVzg+eYxrMvUmTA/6rIsefeujsIGWXXE2T21p
+buPK6v39a3blZ6U9k/zq1rry4eUth+awPZe/KH503afsTsinx1btoytK+iJpRFYT
+U9K3tSZ9U3gyh1mqGvUYPyYttRbL0tGNG0qaDsufDMw0dhQcEe6le4/7PQouXP3Q
+1zfK7/kLLYHptyNnDm6+aD752o2aULU1+Y5t7C8=
+=+coY
+-----END PGP MESSAGE-----
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/brauner
+
+==================================================================
+
