@@ -25,8 +25,8 @@ Here's an asciinema illustration of the problem with a pre
 [![asciicast](https://asciinema.org/a/100040.png)](https://asciinema.org/a/100040?autoplay=1)
 
 What you can see there is that putting a task in the background will lead to
-`lxc exec` not being able to exit. A lot of sequences of commands can trigger
-this problem:
+`lxc exec` not being able to exit. A lot of command sequences can trigger this
+problem:
 
 ```
 chb@conventiont|~
