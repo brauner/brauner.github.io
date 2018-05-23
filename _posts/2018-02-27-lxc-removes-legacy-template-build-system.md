@@ -54,7 +54,7 @@ is properly validated.
 After this cleanup only four `POSIX` shell compliant templates will remain in
 the main `LXC` repository:
 
-- **`lxc-busybox`**
+- **`busybox`**
 
 This is a very minimal template which can be used to setup a `busybox`
 container. As long as the `busybox` binary is found you can always built
@@ -67,13 +67,13 @@ lxc-create c3 -t busybox
 
 [![asciicast](https://asciinema.org/a/165788.png)](https://asciinema.org/a/165788)
 
-- **`lxc-download`**
+- **`download`**
 
 This template lets you download pre-built images from our image servers. This
 is likely what currently most users are using to create unprivileged
 containers.
 
-- **`lxc-local`**
+- **`local`**
 
 This is a new template which consumes standard `LXC` and `LXD` system
 container images. A container can be created with:
@@ -88,7 +88,7 @@ a filesystem tree. Creating a container is then just:
 
 [![asciicast](https://asciinema.org/a/165783.png)](https://asciinema.org/a/165783)
 
-- **`lxc-oci`**
+- **`oci`**
 
 This is the template which can be used to download and run OCI containers.
 Using it is as simple as:
