@@ -29,7 +29,7 @@ You want ownership of a resource, you want that ownership to be exclusive, you
 want that ownership to be limited from `t_1` to `t_n` where you yield it. In
 the language of `C` and the `pthread` implementation this can be expressed in
 code e.g. as:
-```C
+```c
 static pthread_mutex_t thread_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int some_function(/* parameters of relevance*/)
@@ -110,7 +110,7 @@ mutexes. One to be called after `fork()` processing has finished in the child -
 *child handler* - and one called after `fork()` processing in the parent
 finishes - *parent handler*. In the `pthread` implementation and for a shared
 library this would likely look something like this:
-```C
+```c
 void process_lock(void)
 {
         int ret;
@@ -149,7 +149,7 @@ drawbacks:
 
    This is straightforward. Let's reason about the following code sequence for
    a minute ignoring whether holding the mutex would make sense that way:
-    ```C
+    ```c
             int ret, status;
             pid_t pid;
 
@@ -185,7 +185,7 @@ drawbacks:
    No let's add the logic caused by `pthread_atfork()` in there (The mutex
    annotation is slightly misleading but should make things a little easier to
    follow):
-    ```C
+    ```c
             int ret, status;
             pid_t pid;
 
@@ -227,7 +227,7 @@ drawbacks:
     ```
    That doesn't look crazy at a first glance. But let's explicitly look at the
    problem:
-    ```C
+    ```c
     int ret, status;
     pid_t pid;
 
@@ -240,7 +240,7 @@ drawbacks:
 3. They aren't run when you use `clone()` (which obviously is a big deal for a
    container API like [`LXC`](https://github.com/lxc/lxc)). So scenarios like
    the following are worrying:
-    ```C
+    ```c
     /* premise: some other thread holds a mutex */
     pid_t pid;
     void *stack = alloca(/* standard page size */);
