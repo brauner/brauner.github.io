@@ -1,6 +1,11 @@
 theme: minima
 title: brauner's blog
 author: Christian Brauner
+description: > # this means to ignore newlines until "twitter_username:"
+  My Linux kernel contributions are made using the following email addresses
+  (Simply search for them in the Linux kernel git logs.):
+  christian(at)brauner(dot)io
+  christian.brauner(at)ubuntu(dot)com
 google_analytics: UA-114731872-1
 timezone: Europe/Berlin
 twitter_username: brau_ner
