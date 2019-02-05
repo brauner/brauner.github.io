@@ -200,11 +200,11 @@ struct which is used is:
  */
 struct binderfs_device {
        char name[BINDERFS_MAX_NAME + 1];
-       __u8 major;
-       __u8 minor;
+       __u32 major;
+       __u32 minor;
 };
 ```
-and is defined in `linux/android/binder_ctl.h`. Once the request is made via an
+and is defined in `linux/android/binderfs.h`. Once the request is made via an
 `ioctl(2)` passing a `struct binder_device` with the name to the kernel it will
 allocate a new binder device and return the major and minor number of the new
 device in the struct (This is necessary because binderfs allocated a major
