@@ -9,6 +9,7 @@ description: > # this means to ignore newlines until "twitter_username:"
   https://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux.git/
 google_analytics: UA-114731872-1
 timezone: Europe/Berlin
+freenode_username: brauner
 twitter_username: brau_ner
 github_username: brauner
 facebook_username: freiherrgarbage
