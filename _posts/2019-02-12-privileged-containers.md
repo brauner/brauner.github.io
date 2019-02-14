@@ -182,11 +182,22 @@ the vector through the attaching binary still applies.
 
 #### The Lie that Privileged Containers can be safe
 
-We as upstream for [LXC][2] and [LXD][4] have not taken this position that
-privileged containers are not and cannot be root safe for fun. We have taken
-that position because privileged containers are inherently not suited to run
-untrusted workloads and anyone who is advertising that this can be done is
-wrong!
+Aside from mostly working on the Kernel I'm also a maintainer of [LXC][2] and
+[LXD][4] alongside [Stéphane Graber][10]. We are responsible for [LXC][2] - the
+low-level container runtime - and [LXD][4] - the container management daemon
+using [LXC][2].
+We have made a very conscious decision to consider privileged containers not
+root safe. Two main corollaries follow from this:
+1. Privileged containers should never be used to run untrusted workloads.
+2. Breakouts from privileged containers are not considered CVEs by our security
+   policy.
+It still seems a common belief that if we all just try hard enough using
+privileged containers for untrusted workloads is safe. This is not a promise
+that can be made good upon. A privileged container is not a security boundary.
+The reason for this is simply what we looked at above: `container_id(0) ==
+host_id(0)`.
+It is therefore deeply troubling that this industry is happy to let users
+believe that they are safe and secure using privileged containers.
 
 #### Unprivileged Containers as Default
 
@@ -272,3 +283,4 @@ running privileged containers can disable this feature by passing
 [7]: https://www.reddit.com/r/Crostini/comments/apkz8t/crostini_containers_likely_vulnerable_to/
 [8]: https://github.com/lxc/linuxcontainers.org/commit/b1a45aef6abc885594aab2ce6bdeb2186c5e0973
 [9]: https://github.com/lxc/lxc/commit/6400238d08cdf1ca20d49bafb85f4e224348bf9d
+[10]: https://stgraber.org/
