@@ -73,8 +73,8 @@ id: container_id(2) -> host_id(100002)
 
 container_id(100000) -> host_id(200000)
 ```
-With this mapping `container_id(0) != host_id(100000)`. But now consider
-the following mapping:
+With this mapping it's evident that `container_id(0) != host_id(0)`. But now
+consider the following mapping:
 ```
 id: 0 0 1
 id: 1 100001 99999
