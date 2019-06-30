@@ -6,8 +6,9 @@ title: 'Linux Kernel VFSisms'
 #### Introduction
 
 This is intended as a collection of helpful knowledge bits around Linus Kernel
-VFS internals. It mostly contains bits and pieces I picked up while working on
-the Linux kernel and talking to VFS maintainers or high-profile contributors.
+VFS internals. It mostly contains (hopefully) useful bits and pieces I picked
+up while working on the Linux kernel and talking to VFS maintainers or
+high-profile contributors.
 
 #### `ksys_close()`
 
@@ -47,6 +48,7 @@ example blessed by Al Viro:
 					      O_RDWR | O_CLOEXEC);
 		if (IS_ERR(pidfile)) {
 			put_unused_fd(pidfd);
+			retval = ERR_PTR(pidfile);
 			goto bad_fork_free_pid;
 		}
 		get_pid(pid);	/* held by pidfile now */
