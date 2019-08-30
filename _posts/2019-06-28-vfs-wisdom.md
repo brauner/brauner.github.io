@@ -71,3 +71,28 @@ example blessed by Al Viro:
 	if (pidfile)
 		fd_install(pidfd, pidfile);
 ```
+
+#### Setting `i_nlink` after creating a directory in-kernel
+
+When a new directory is created in a filesystem the inode needs to be
+initialized. The `new_inode` for the directoy needs to get a count of `2` for
+(`.` and `..`) the count of the `parent_inode` of the parent directory needs to
+be incremented. There are a few places in kernel where this is done like this:
+
+```c
+inc_nlink(new_inode);
+d_instantiate(dentry, new_inode);
+inc_nlink(parent_inode);
+fsnotify_mkdir(parent_inode, dentry);
+```
+
+But the preferred method of doing this is:
+
+```c
+set_nlink(new_inode, 0);
+d_instantiate(dentry, new_inode);
+inc_nlink(parent_inode);
+fsnotify_mkdir(parent_inode, dentry);
+```
+
+since `new_inode` cannot be modified by someone else concurrently.
