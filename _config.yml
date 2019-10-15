@@ -1,13 +1,13 @@
 theme: minima
 title: brauner's blog
 author: Christian Brauner
-url: https://people.kernel.org/brauner
 description: > # this means to ignore newlines until "twitter_username:"
   My Linux kernel contributions are made using the following email addresses
   (Simply search for them in the Linux kernel git logs.):
   christian(at)brauner(dot)io
   christian.brauner(at)ubuntu(dot)com
-  https://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux.git/
+  kernel tree: https://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux.git/
+  homepage: https://people.kernel.org/brauner
 google_analytics: UA-114731872-1
 timezone: Europe/Berlin
 freenode_username: brauner
