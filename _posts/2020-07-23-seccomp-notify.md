@@ -225,4 +225,6 @@ The new seccomp extension effectively allows the container manager to instructs 
 
 This new technique opens the door to being able to make massive changes in userspace. For example, techniques such as enabling unprivileged access to `perf_event_open(2)`, and `bpf(2)` for tracing are available via this mechanism. The manager can inspect the program, and the way the perf events are being setup to prevent the user from doing ill to the system. On top of that, various network techniques are being introducd, such as zero-cost IPv6 transition mechanisms in the future.
 
+Last, I want to note that [Sargun Dhillon](https://twitter.com/sargun) was kind enough to contribute paragraphs to the `pidfd_getfd(2)` and `SECCOMP_NOTIFY_IOCTL_ADDFD` sections. He also provided the graphic in the `pidfd_getfd(2)` sections to illustrate the performance benefits of this solution.
+
 Christian
