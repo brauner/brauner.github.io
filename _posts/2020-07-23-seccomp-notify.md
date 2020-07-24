@@ -223,4 +223,6 @@ Current work for the upcoming merge window is focussed on making it possible to 
 
 The new seccomp extension effectively allows the container manager to instructs the target task to install a set of file descriptors into its own file descriptor table before instructing it to move on.  This way it is possible to intercept syscalls such as `open(2)` or `accept(2)`, and install (or replace, like `dup2(2)`) the container manager's resulting fd in the target task.
 
+This new technique opens the door to being able to make massive changes in userspace. For example, techniques such as enabling unprivileged access to `perf_event_open(2)`, and `bpf(2)` for tracing are available via this mechanism. The manager can inspect the program, and the way the perf events are being setup to prevent the user from doing ill to the system. On top of that, various network techniques are being introducd, such as zero-cost IPv6 transition mechanisms in the future.
+
 Christian
