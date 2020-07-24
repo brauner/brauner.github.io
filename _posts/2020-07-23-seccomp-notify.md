@@ -31,7 +31,7 @@ Creating device nodes is one such example: if a task running in a user namespace
 
 Other examples where the kernel requires privileges in the initial user namespace are mounting of block devices.  So simply making a disk device node available to an unprivileged container will still not make it useable since it cannot mount it.  On the other hand, some filesystems like `cgroup`, `cgroup2`, `tmpfs`, `proc`, `sysfs`, and `fuse` can be mounted in user namespace (with some caveats for `proc` and `sys` but we're ignoring those details for now) because the kernel can guarantee that this is safe.
 
-But of course these restrictions are annoying.  Not being able to mount block devices or creating device nodes means quite a few workloads are not able to run in containers even though they could be made to run safely.  Quite often a container manager like `LXD` will know better than the kernel when an operation that a container tries to perform is safe.
+But of course these restrictions are annoying.  Not being able to mount block devices or create device nodes means quite a few workloads are not able to run in containers even though they could be made to run safely.  Quite often a container manager like `LXD` will know better than the kernel when an operation that a container tries to perform is safe.
 
 A good example are device nodes.  Most containers bind-mount the set of standard devices into the container otherwise it would not work correctly:
 
