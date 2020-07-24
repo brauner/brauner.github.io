@@ -203,9 +203,19 @@ Similar precautions should be applied when stacking `SECCOMP_RET_USER_NOTIF` or 
 
 ##### Retrieving file descriptors `pidfd_getfd()`
 
-Another extension that was added by Sargun Dhillon recently building on top of my pidfd work was to make it possible to retrieve file descriptors from another task.  This works even without the seccomp notifier since it is a new syscall but is of course especially useful in conjunction with it.
+Another extension that was added by [Sargun Dhillon](https://twitter.com/sargun) recently building on top of my pidfd work was to make it possible to retrieve file descriptors from another task.  This works even without the seccomp notifier since it is a new syscall but is of course especially useful in conjunction with it.
 
 Often we would like to intercept syscalls such as `connect(2)`.  For example, the container manager might want to rewrite the `connect(2)` request to something other than the task intended for security reasons or because the task lacks the necessary information about the networking layout to connect to the right endpoint.  In these cases `pidfd_getfd(2)` can be used to retrieve a copy of the file descriptor of the task and perform the `connect(2)` for it.  This unblocks another wide range of use-cases.
+
+For example, it can be used for further introspection into file descriptors than ss, or netstat would typically give you, as you can do things like run `getsockopt(2)` on the file descriptor, and you can use options like `TCP_INFO` to fetch a significant amount of information about the socket. Not only can you fetch information about the socket, but you can also set fields like `TCP_NODELAY`, to tune the socket without requiring the user's intervention. This mechanism, in conjunction can be used to build a rudimentary layer 4 load balancer where `connect(2)` calls are intercepted, and the destination is changed to a real server instead.
+
+Early results indicate that this method can yield incredibly good latency as compared to other layer 4 load balancing techniques.
+
+<div>
+    <a href="https://plotly.com/~sargun/63/?share_key=TBxaZob2h9GiGD9LxVuFuE" target="_blank" title="Plot 63" style="display: block; text-align: center;"><img src="https://plotly.com/~sargun/63.png?share_key=TBxaZob2h9GiGD9LxVuFuE" alt="Plot 63" style="max-width: 100%;width: 600px;"  width="600" onerror="this.onerror=null;this.src='https://plotly.com/404.png';" /></a>
+</div>
+
+
 
 ##### Injecting file descriptors `SECCOMP_NOTIFY_IOCTL_ADDFD`
 
