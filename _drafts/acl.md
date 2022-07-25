@@ -11,6 +11,56 @@ When running in a user namespace the uids and gids stored via `ACL_USER` and
 namespace. The caller's user namespace carries what we will refer to as the
 "`caller_idmapping`" going forward.
 
+A quick recap on idmappings might be in order here and a remark on notation. In
+the context of the kernel an idmapping can be interpreted as mapping a range of
+userspace ids into a range of kernel ids::
+
+    userspace-id:kernel-id:range
+
+A userspace id is always an element in the upper idmapset of an idmapping of
+type `uid_t` or `gid_t` and a kernel id is always an element in the lower
+idmapset of an idmapping of type `kuid_t` or `kgid_t`. From now on "userspace
+id" will be used to refer to the well known `uid_t` and `gid_t` types and
+"kernel id" will be used to refer to `kuid_t` and `kgid_t`.
+
+The kernel is mostly concerned with kernel ids. They are used when performing
+permission checks and are stored in an inode's `i_uid` and `i_gid` field.
+A userspace id on the other hand is an id that is reported to userspace by the
+kernel, or is passed by userspace to the kernel, or a raw device id that is
+written or read from disk.
+
+Note that we are only concerned with idmappings as the kernel stores them not
+how userspace would specify them.
+
+For the rest of this document we will prefix all userspace ids with `u` and
+all kernel ids with `k`. Ranges of idmappings will be prefixed with `r`. So
+an idmapping will be written as `u0:k10000:r10000`.
+
+Later we will encounter idmapped mounts which generate another type of id known
+as `vfsuid_t` and `vfsgid_t`. Idmapping for mounts will be written as
+`k0:v10000:r10000` indicating they they map a `kuid_t`/`kgid_t` into
+a `vfsuid_t`/`vfsgid_t`. Thus, we use the prefix and `v` to indicate
+a `vfsuid_t`/`vfsgid_t`.
+
+For example, the id `u1000` is an id in the upper idmapset or "userspace
+idmapset" starting with `u1000`. And it is mapped to `k11000` which is a
+kernel id in the lower idmapset or "kernel idmapset" starting with `k10000`.
+
+A kernel id is always created by an idmapping. Such idmappings are associated
+with user namespaces. Since we mainly care about how idmappings work we're not
+going to be concerned with how idmappings are created nor how they are used
+outside of the filesystem context. This is best left to an explanation of user
+namespaces.
+
+The initial user namespace is special. It always has an idmapping of the
+following form::
+
+ u0:k0:r4294967295
+
+which is an identity idmapping over the full range of ids available on this
+system.
+
+
 This mapping or "translation" is performed by `posix_acl_fix_xattr_from_user()`
 for `setxattr()` and by `posix_acl_fix_xattr_to_user()` for `getxattr()`.
 
