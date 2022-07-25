@@ -19,24 +19,22 @@ pecular implemation that is important to understand in order to understand POSIX
 ACLs with `ACL_USER` and `ACL_GROUP` attributes set:
 
 (1) `posix_acl_fix_xattr_from_user()`
-    ```
+
     caller_idmapping: u0:k10000000:r65536
 
-	 struct posix_acl_xattr_entry *entry;
+    struct posix_acl_xattr_entry *entry;
 
     k10000004 = make_kuid(u0:k10000000:r65536 /* caller_idmapping */, u4 /* entry->e_id */);
     u10000004 = from_kuid(&init_user_ns, k10000004);
-    ```
 
 (2) `posix_acl_fix_xattr_to_user()`
-    ```
+
     caller_idmapping: u0:k10000000:r65536
 
-	 struct posix_acl_xattr_entry *entry;
+    struct posix_acl_xattr_entry *entry;
 
     k10000004 = make_kuid(&init_user_ns, u10000004 /* entry->e_id */);
     u4 = from_kuid(u0:k10000000:r65536 /* caller_idmapping */, k10000004);
-    ```
 
 It is important to note that in (1) and (2) the `init_user_ns` is used
 independent of whether or not the underlying filesystem that the POSIX ACLs were
@@ -688,11 +686,10 @@ So the translation helpers in (1) and (2) were adapated to:
 
 (12) `posix_acl_fix_xattr_from_user()`
 
-    ```
     caller_idmapping: u0:k10000000:r65536
     mnt_idmapping:    k0:v10000000:r65536
 
-	struct posix_acl_xattr_entry *entry;
+    struct posix_acl_xattr_entry *entry;
 
     k10000004 = make_kuid(u0:k10000000:r65536 /* caller_idmapping */, u4 /* entry->e_id */);
 
@@ -700,15 +697,13 @@ So the translation helpers in (1) and (2) were adapated to:
            k4 = from_vfsuid(k0:v10000000:r65536 /* mnt_idmapping */, &init_user_ns, v10000004);
 
            u4 = from_kuid(&init_user_ns, k4);
-    ```
 
 (13) `posix_acl_fix_xattr_to_user()`
 
-    ```
     caller_idmapping: u0:k10000000:r65536
     mnt_idmapping:    k0:v10000000:r65536
 
-	struct posix_acl_xattr_entry *entry;
+    struct posix_acl_xattr_entry *entry;
 
            k4 = make_kuid(&init_user_ns, u4 /* entry->e_id */);
 
@@ -716,7 +711,6 @@ So the translation helpers in (1) and (2) were adapated to:
     k10000004 = from_vfsuid(&init_user_ns, /* mnt_idmapping */, &init_user_ns, v10000004);
 
     u4 = from_kuid(u0:k10000000:r65536 /* caller_idmapping */, k10000004);
-    ```
 
 The consequence of the earlier type confusion is that we need to play the same
 game on idmapped mounts that we played earlier. We need to abuse the
@@ -1036,7 +1030,6 @@ Similarly, when we report ownership information of a file the lower layer will
 fill in `struct kstat` with the ownership information based on the
 `fs_idmapping` and `mnt_idmapping` of the lower layer. The `fs_idmapping` and
 `caller_idmapping` of the `overlayfs` mounter are entirely irrelevant for this.
-apply the `fs_idmapping` it has been mounted with.
 
 This is very crucial to notice as taking the `fs_idmapping` or
 `caller_idmapping` for `overlayfs` into account would mean that `overlayfs`
