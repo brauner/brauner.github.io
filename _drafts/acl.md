@@ -1,50 +1,43 @@
 # POSIX ACLs
 
-When creating or retrieving POSIX ACLs that store additional uids and gids via
-`ACL_USER` or `ACL_GROUP` through the `setxattr()` and `getxattr()` system calls
-various problems exist for stacked filesystems such as `overlayfs`.
+## A refresher on idmappings
 
-But let's start with the seemingly simple status quo.
+Before we dive into POSIX ACLs we should refresh our memory about idmappings and
+comment on some of the notational convention this document will use.
 
-When running in a user namespace the uids and gids stored via `ACL_USER` and
-`ACL_GROUP` attributes in POSIX ACLs need to be mapped into the caller's user
-namespace. The caller's user namespace carries what we will refer to as the
-"`caller_idmapping`" going forward.
-
-A quick recap on idmappings might be in order here and a remark on notation. In
-the context of the kernel an idmapping can be interpreted as mapping a range of
-userspace ids into a range of kernel ids::
+In the context of the kernel an idmapping can be interpreted as mapping a range
+of userspace ids into a range of kernel ids:
 
     userspace-id:kernel-id:range
 
+Note that we are only concerned with idmappings as the kernel stores them not
+how userspace would specify them.
+
 A userspace id is always an element in the upper idmapset of an idmapping of
 type `uid_t` or `gid_t` and a kernel id is always an element in the lower
-idmapset of an idmapping of type `kuid_t` or `kgid_t`. From now on "userspace
-id" will be used to refer to the well known `uid_t` and `gid_t` types and
-"kernel id" will be used to refer to `kuid_t` and `kgid_t`.
+idmapset of an idmapping of type `kuid_t` or `kgid_t`.
 
 The kernel is mostly concerned with kernel ids. They are used when performing
 permission checks and are stored in an inode's `i_uid` and `i_gid` field.
+
 A userspace id on the other hand is an id that is reported to userspace by the
 kernel, or is passed by userspace to the kernel, or a raw device id that is
-written or read from disk.
-
-Note that we are only concerned with idmappings as the kernel stores them not
-how userspace would specify them.
+written or read from disk. There's an argument to be made that userspace and raw
+device ids are different but at least for the current type system the kernel
+uses they are the same and expressed by `uid_t`/`gid_t` or simple integers.
 
 For the rest of this document we will prefix all userspace ids with `u` and
 all kernel ids with `k`. Ranges of idmappings will be prefixed with `r`. So
 an idmapping will be written as `u0:k10000:r10000`.
 
 Later we will encounter idmapped mounts which generate another type of id known
-as `vfsuid_t` and `vfsgid_t`. Idmapping for mounts will be written as
-`k0:v10000:r10000` indicating they they map a `kuid_t`/`kgid_t` into
-a `vfsuid_t`/`vfsgid_t`. Thus, we use the prefix and `v` to indicate
-a `vfsuid_t`/`vfsgid_t`.
+as `vfsuid_t` and `vfsgid_t`. We will write such idmappings as:
 
-For example, the id `u1000` is an id in the upper idmapset or "userspace
-idmapset" starting with `u1000`. And it is mapped to `k11000` which is a
-kernel id in the lower idmapset or "kernel idmapset" starting with `k10000`.
+    k0:v10000:r10000
+
+The `k` and `v` indicate that these idmappings translate between
+`kuid_t`/`kgid_t` and generate `vfsuid_t`/`vfsgid_t`.
+
 
 A kernel id is always created by an idmapping. Such idmappings are associated
 with user namespaces. Since we mainly care about how idmappings work we're not
@@ -55,10 +48,45 @@ namespaces.
 The initial user namespace is special. It always has an idmapping of the
 following form::
 
- u0:k0:r4294967295
+    u0:k0:r4294967295
 
 which is an identity idmapping over the full range of ids available on this
 system.
+
+The functions `make_kuid()`/`make_kgid()` take a `uid_t`/`gid_t` and generate a
+`kuid_t`/`kgid_t`:
+
+    k10000004 = make_kuid(u0:k10000000:r65536, u4);
+
+The functions `from_kuid()`/`from_kgid()` take a `kuid_t`/`kgid_t` and generate
+a `uid_t`/`gid_t`:
+
+    u10000004 = from_kuid(u0:k10000000:r65536, k10000004);
+
+Similarly, the `make_vfsuid()`/`make_vfsgid()` functions take `kuid_t`/`kgid_t`
+and generate a `vfsuid_t`/`vfsgid_t`:
+
+    v10000004 = make_vfsuid(k0:v10000000:r65536, &init_user_ns, k4);
+
+and the functions `from_vfsuid()`/`from_vfsgid()` take a `vfsuid_t`/`vfsgid_t`
+and generate `kuid_t`/`kgid_t`:
+
+    k4 = from_vfsuid(k0:v10000000:r65536, &init_user_ns, v10000004);
+
+The `make_*()` and `from_*()` functions invert each other.
+
+## POSIX ACLs - The Status Quo
+
+When creating or retrieving POSIX ACLs that store additional uids and gids via
+`ACL_USER` or `ACL_GROUP` through the `setxattr()` and `getxattr()` system calls
+various problems exist for stacked filesystems such as `overlayfs`.
+
+But let's start with the seemingly simple status quo.
+
+When running in a user namespace the uids and gids stored via `ACL_USER` and
+`ACL_GROUP` attributes in POSIX ACLs need to be mapped into the caller's user
+namespace. The caller's user namespace carries what we will refer to as the
+"`caller_idmapping`" going forward.
 
 
 This mapping or "translation" is performed by `posix_acl_fix_xattr_from_user()`
@@ -93,9 +121,9 @@ filesystem idmapping ("`fs_idmapping`").
 
 Why is that relevant you may ask. Usually, when writing uids and gids passed in
 from userspace to the filesystem involves translating the raw `uid_t` and
-`gid_t` into a `kuid_t` and `kgid_t` right at the VFS boundary. Then they are
-kept as `kuid_t` and `kgid_t` right until the moment where they need to be
-written to disk.
+`gid_t` into a `kuid_t` and `kgid_t` right at the userspace <-> VFS boundary.
+Then they are kept as `kuid_t` and `kgid_t` right until the moment where they
+need to be written to disk.
 
 For example, consider a regular `chown()` call:
 
@@ -119,7 +147,7 @@ disk taking the `fs_idmapping` into account:
     u4 = from_kuid(u0:k10000000:r65536 /* fs_idmapping */, k10000004);
     u4 = from_kgid(u0:k10000000:r65536 /* fs_idmapping */, k10000004);
 
-So right at the userspace to VFS boundary, the kernel will take care to map the
+So right at the userspace <-> VFS boundary, the kernel will take care to map the
 caller provided `uid_t` and `gid_t` into kernel internal `kuid_t` and `kgid_t`
 representations. And the kernel will take care to never conflate `uid_t` and
 `gid_t` values from there on. It will especially not translate them back into
@@ -136,10 +164,11 @@ immediately followed by calls to `from_kuid()` and `from_kgid()` using the
 
 And strangly all that this will achieve is an identity translation that turns
 the `kuid_t` and `kgid_t` we just generated back into raw `uid_t` and `gid_t`
-with the samve value as the `kuid_t` and `kgid_t` we just created. That seem
+with the samve value as the `kuid_t` and `kgid_t` we just created. That seems
 rather odd. Especially because we just noticed earlier that the kernel is
 adamant about translating between userspace `uid_t` and `gid_t` into `kuid_t`
-and `kgid_t` only at either the userspace to VFS or the VFS to on-disk boundary.
+and `kgid_t` only at either the userspace <-> VFS or the VFS <-> backing store
+boundary.
 
 It contradicts the claim that we made earlier that the kernel will not translate
 `kuid_t` and `kgid_t` into `uid_t` and `gid_t` somewhere in the middle of a
@@ -183,7 +212,7 @@ all the other ones. None of the three filesystems can be mounted inside user
 namespaces and so the only relevant `fs_idmapping` is the `initial_idmapping`.
 
 But we will also look at `FUSE` which is the only filesystems that is mountable
-inside of user namespaces while also being able to have a backing device.
+inside of user namespaces while also being able to have a backing store.
 Contrast this with `tmpfs` which is a filesystem that is mountable inside of
 user namespace but has can never have a device backing it.
 
@@ -385,6 +414,7 @@ user namespace but has can never have a device backing it.
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
     fs_idmapping:     u0:k0:r4294967295 
+    ovl_idmapping:    u0:k0:r4294967295 
 
      1 sys_setxattr()
      2 -> path_setxattr()
@@ -433,6 +463,7 @@ user namespace but has can never have a device backing it.
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
     fs_idmapping:     u0:k0:r4294967295 
+    ovl_idmapping:    u0:k0:r4294967295 
 
      1 sys_getxattr()
      2 -> path_getxattr()
@@ -465,6 +496,7 @@ user namespace but has can never have a device backing it.
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
     fs_idmapping:     u0:k10000000:r65536 
+    ovl_idmapping:    u0:k0:r4294967295 
 
      1 sys_setxattr()
      2 -> path_setxattr()
@@ -515,6 +547,7 @@ user namespace but has can never have a device backing it.
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
     fs_idmapping:     u0:k10000000:r65536 
+    ovl_idmapping:    u0:k0:r4294967295 
 
      1 sys_getxattr()
      2 -> path_getxattr()
@@ -542,7 +575,6 @@ user namespace but has can never have a device backing it.
     24                       k10000004 = make_kuid(&init_user_ns, u10000004);
     26                       u4 = from_kuid(u0:k10000000:r65536 /* caller_idmapping */, k10000004);
     27              }
-
 
 As we've said `xfs` and the others cannot be mounted with an idmapping and thus
 the relevant `fs_idmapping` is the `initial_idmapping`. This has the
@@ -582,25 +614,47 @@ In the `setxattr()` callchain (7) line 19 we can see that in the call to
 `initial_idmapping` again and turning the `uid_t` and `gid_t` into a `kuid_t`
 and `kgid_t` again.
 
-For `getxattr()` the type safety violation happens not at the userspace to VFS
-boundary but at the device to VFS boundary. The `getxattr()` callchain (8) line
-16 abuses the `initial_idmapping` to turn a `kuid_t` and `kgid_t` into a `uid_t`
-and `gid_t` so it can be stored in the uapit `struct posix_acl_xattr_entry` and
-sent back up to the VFS to userspace boundary. This happens __in the middle of a
-VFS callchain__.
+For `getxattr()` the type safety violation happens not at the userspace <-> VFS
+boundary but at the backing store <-> VFS boundary. The `getxattr()` callchain
+(8) line 16 abuses the `initial_idmapping` to turn a `kuid_t` and `kgid_t` into
+a `uid_t` and `gid_t` so it can be stored in the uapi
+`struct posix_acl_xattr_entry` and then sent back up to the VFS <-> userspace
+boundary.
 
-The subversion is reverted again in `posix_acl_fix_xattr_to_user()` by abusing
-the `initial_idmapping` again to turn the `uid_t` and `gid_t` back into a
-`kuid_t` and `kgid_t`. The `kuid_t` and `kgid_t` just generated then immediately
-gets mapped into `uid_t` and `gid_t` in the `caller_idmapping` in order to
-report it to userspace.
+There should be no type conversion happening here. The conversion from backing
+store <-> VFS already happened way earlier when the fs read the POSIX ACLs from
+disk and converted raw `ACL_USER`/`ACL_GROUP` ids into `kuid_t`/`kgid_t` and
+stored them in `struct posix_acl`. But from that point on they should be kept in
+a struct with `kuid_t`/`kgid_t` types until right at the VFS <-> userspace
+boundary when they have to be converted from `kuid_t`/`kgid_t` to
+`uid_t`/`gid_t` that can be reported to userspace.  Instead, the conversion
+happens multiple times:
+
+    xfs_get_acl(uid_t/gid_t -> kuid_t/kgid_t)
+    posix_acl_from_xattr(kuid_t/kgid_t -> uid_t/gid_t)
+    posix_acl_fix_xattr_to_user(uid_t/gid_t -> kuid_t/kgid_t -> uid_t/gid_t)
+
+when really it should be:
+
+    xfs_get_acl(uid_t/gid_t -> kuid_t/kgid_t)
+    posix_acl_fix_xattr_to_user(kuid_t/kgid_t -> uid_t/gid_t)
+
+As we can see the type system subversion is reverted again in
+`posix_acl_fix_xattr_to_user()` by abusing the `initial_idmapping` again to turn
+the `uid_t` and `gid_t` back into a `kuid_t` and `kgid_t`. The `kuid_t` and
+`kgid_t` just generated then immediately get mapped into `uid_t` and `gid_t` in
+the `caller_idmapping` in order to report it to userspace.
 
 This is a whole lot of subtlety and ripe for confusion and bugs.
 
+## POSIX ACLs and overlayfs
+
 On `overlayfs` the callchains become more complicated because `overlayfs` is a
-stacking filesystems. What this means that certain callchains will be hit twice.
+stacking filesystems. What this means is that certain functions will be hit
+twice in an `overlayfs` callchain. 
+
 For example, the VFS encapsulates some core filesystem functionality in helpers
-prefixed with `vfs_` such as `vfs_setxattr()` or `vfs_getxattr(). You can spot
+prefixed with `vfs_` such as `vfs_setxattr()` or `vfs_getxattr()`. You can spot
 those helpers in the callchains above.
 
 A stacking filesystem such as `overlayfs` will need to call these helpers in
@@ -608,14 +662,14 @@ order to perform operations on the filesystem it is stacked upon. For example,
 if you mount an `overlayfs` filesystem:
 
 ```sh
-mount -t overlay overlay -o lowerdir=/lower_layer_1:lower_layer_2,    \
-                            upperdir=/writable_layer/upper,         \
-                            workdir=/writable_layer/work            \
+mount -t overlay overlay -o lowerdir=/lower_layer_1:lower_layer_2, \
+                            upperdir=/writable_layer/upper,        \
+                            workdir=/writable_layer/work           \
                             /merge
 ```
 
-and have created a file `/merge/file` in there setting a POSIX ACL on this file
-via `setxattr()` will generate a nested callchain. So blanking out all
+and have created a file `/merge/file`. When setting a POSIX ACL on this file via
+`setxattr()` a nested or stacking callchain will be created. So blanking out all
 distracting details of the `setxattr()` callchain from a callchain like (9) or
 (11) above we get:
 
@@ -646,28 +700,30 @@ distracting details of the `setxattr()` callchain from a callchain like (9) or
 meaning that the `vfs_setxattr()` helper is called once for the `overlayfs`
 layer and a second time for the underlying filesystem such as `xfs` or `FUSE`.
 
-You can see that the subtle type confusions are very problematic because now
-they have to be reasoned about in scenarios where we are dealing with a stacking
-filesystem. The type confusion is kept around for an even longer time and passed
-into ever more complicated and deep callchains.
+You can see that the subtle type confusions are evern more problematic now
+because they have to be reasoned about in scenarios where two filesystems are
+involved. That's not taking into account that the type confusion has to be kept
+around for an even longer time and passed into even more complicated and deep
+callchains.
 
-This hack didn't matter for a long time until someone came a long and
-implemented a new feature.
+This hack didn't matter or rather wasn't obvious at all for a long time until we
+came a long and implemented a new feature.
 
 ## Idmapped Mounts
 
 Idmapped mounts work by allowing to attach idmappings to mounts. You might have
-noticed these idmappings above as `mnt_idmapping` before the callchains we lined
-out.
+noticed these idmappings above as `mnt_idmapping` on top of all the callchains
+we lined out.
 
 In essence, idmapped mounts function like a temporary and localized `chown()`
-operation where the ownership changes are tied to the lifetime of a mount.
+operation where the ownership changes are tied to the lifetime of a mount and in
+contrast to `chown()` complex ownership mappings can be taken into account.
 
 During permission checking and when creating new filesystem objects or reporting
 ownership information the `mnt_idmapping` needs to be taken into account.
 
-Say you have a file that is stored on disk as being owned by `uid_t` and `gid_t`
-`u0`. Now you mount that filesystem in a user namespace with the `fs_idmapping`
+Say you have a file that is stored on the backing store as being owned by `u0`.
+Now that filesystem is mounted in a user namespace with the `fs_idmapping`
 `u0:k10000000:r65536`. When the filesystem initializes ` struct inode` for the
 file and fills in ownership information via:
 
@@ -685,11 +741,12 @@ this comes down to:
 and means the `struct inode` for the file will contain `k10000000` in
 `inode->i_uid` and `inode->i_gid`.
 
-Now when an idmapped mount is the `mnt_idmapping` needs to be taken into account
-when ownership information is needed. This comes down to undoing the
-`fs_idmapping` and applying the `mnt_idmapping`. The details around this are
-documented in _Documentation/filesystems/idmappings.rst` in the Linux kernel
-repository so I won't repeat it all here.
+Now when an idmapped mount is in the mix the `mnt_idmapping` needs to be taken
+into account when ownership information is needed. This comes down to undoing
+the `fs_idmapping` and applying the `mnt_idmapping` (The details around this are
+documented in `Documentation/filesystems/idmappings.rst` in the Linux kernel
+repository so I won't repeat it all here. I encourage you to read this
+document.)
 
 Currently no filesystems mountable inside of user namespaces support idmapped
 mounts so our explanation becomes a little simpler since the `fs_idmapping` is
@@ -697,8 +754,8 @@ always the `initial_idmapping`.
 
 Let's look at an idmapped mount created for an `xfs` filesystem. Since `xfs` can
 only be mounted with the `initial_idmapping` the value stored as the ownership
-of a file on disk is identical to the value stored in the `inode->i_uid` and
-`inode->i_gid` in `struct inode`.
+of a file on the backing store is identical to the value stored in the
+`inode->i_uid` and `inode->i_gid` in `struct inode`.
 
 They are separate types of course, as the `inode->i_uid` and `inode->i_gid`
 members have type `kuid_t` and `kgid_t` while the device ownership is expressed
@@ -719,12 +776,12 @@ and to reverse:
     k0 = from_vfsuid(u0:k10000000:r65536 /* mnt_idmapping */, &init_user_ns /* fs_idmapping */, v10000000)
 
 The difference to `make_kuid()` and `make_kgid()` is that the input isn't
-`uid_t` or `gid_t` but a `kuid_t` and `kgid_t` and the output is a `vfsuid_t`
-and `vfsgid_t`. This is a dedicated type introduced to ensure that `kuid_t` and
-`kgid_t` can never be conflated with a `vfsuid_t` and `vfsgid_t`. In other
-words, we ensure that a `mnt_idmapping` generates a new ownership type that only
-ever appears in the VFS and can't be accidently passed to `from_kuid()` and
-`from_kgid()` or `make_kuid()` and `make_kgid()`.
+a `uid_t`/`gid_t` but a `kuid_t`/`kgid_t` and the output is a
+`vfsuid_t`/`vfsgid_t`. This is a dedicated type introduced to ensure that
+a `kuid_t`/`kgid_t` can never be conflated with a `vfsuid_t`/`vfsgid_t`. In
+other words, we ensure that a `mnt_idmapping` generates a new ownership type
+that only ever appears in the VFS and can't be accidently passed to
+`from_kuid()`/`from_kgid()` or `make_kuid()`/`make_kgid()`.
 
 ## Idmapped Mounts and POSIX ACLs
 
@@ -734,7 +791,7 @@ codepaths.
 
 So the translation helpers in (1) and (2) were adapated to:
 
-(12) `posix_acl_fix_xattr_from_user()`
+(13) `posix_acl_fix_xattr_from_user()`
 
     caller_idmapping: u0:k10000000:r65536
     mnt_idmapping:    k0:v10000000:r65536
@@ -743,12 +800,12 @@ So the translation helpers in (1) and (2) were adapated to:
 
     k10000004 = make_kuid(u0:k10000000:r65536 /* caller_idmapping */, u4 /* entry->e_id */);
 
-    v10000005 = make_vfsuid(&init_user_ns, &init_user_ns, k10000004);
+    v10000004 = make_vfsuid(&init_user_ns, &init_user_ns, k10000004);
            k4 = from_vfsuid(k0:v10000000:r65536 /* mnt_idmapping */, &init_user_ns, v10000004);
 
            u4 = from_kuid(&init_user_ns, k4);
 
-(13) `posix_acl_fix_xattr_to_user()`
+(14) `posix_acl_fix_xattr_to_user()`
 
     caller_idmapping: u0:k10000000:r65536
     mnt_idmapping:    k0:v10000000:r65536
@@ -757,7 +814,7 @@ So the translation helpers in (1) and (2) were adapated to:
 
            k4 = make_kuid(&init_user_ns, u4 /* entry->e_id */);
 
-    v10000005 = make_vfsuid(k0:v10000000:r65536 /*mnt_idmapping, &init_user_ns, k4);
+    v10000004 = make_vfsuid(k0:v10000000:r65536 /*mnt_idmapping, &init_user_ns, k4);
     k10000004 = from_vfsuid(&init_user_ns, /* mnt_idmapping */, &init_user_ns, v10000004);
 
     u4 = from_kuid(u0:k10000000:r65536 /* caller_idmapping */, k10000004);
@@ -766,37 +823,38 @@ The consequence of the earlier type confusion is that we need to play the same
 game on idmapped mounts that we played earlier. We need to abuse the
 `initial_idmapping` again to subvert the type system.
 
-The first problem is that `make_vfsuid()` and `make_vfsgid()` and
-`from_vfsuid()` and `from_vfsgid()` are conceptually tied to the `fs_idmapping`.
+The first problem is that `make_vfsuid()`/`make_vfsgid()` and
+`from_vfsuid()`/`from_vfsgid()` are conceptually tied to the `fs_idmapping`.
 
-For example, `make_vfsuid()` and `make_vfsgid()` need to undo the `fs_idmapping`
-for VFS objects such as `struct inode` `inode->i_uid` and `inode->i_gid` and the
+For example, `make_vfsuid()`/`make_vfsgid()` need to undo the `fs_idmapping` for
+VFS objects such as `struct inode`'s `inode->i_uid` and `inode->i_gid` and then
 apply the `mnt_idmapping`.
 
-The `from_vfsuid()` and `from_vfsgid()` helpers are the inverse of
-`make_vfsuid()` and `make_vfsgid()` and thus need to undo the `mnt_idmapping`
-before applying the `fs_idmapping`.
+The `from_vfsuid()`/`from_vfsgid()` helpers are the inverse of
+`make_vfsuid()`/`make_vfsgid()` and thus need to undo the `mnt_idmapping` before
+applying the `fs_idmapping`.
 
 The helpers elegantly express the dependency between the `fs_idmapping` and the
-`mnt_idmapping` neatly and thus suggest that the `fs_idmapping` be used whenever
-they are called.
+`mnt_idmapping` and thus suggest that the `fs_idmapping` be used whenever they
+are called.
 
-The problem now is that the type safety subversion in `ACL_USER` and `ACL_GROUP`
+The problem now is that the type safety subversion in `ACL_USER`/`ACL_GROUP`
 POSIX ACLs now becomes even more problematic. First, because the developer needs
 to be aware that the `fs_idmapping` is completely irrelevant in
-`posix_acl_fix_xattr_from_user()` and `posix_acl_fix_xattr_to_user()` and thus
-is also irrelevant for `make_vfsuid()`, `make_vfsgid()`, `from_vfsuid()`, and
-`from_vfsgid()`. That itself is already a feat because the developer needs to be
-aware of the callchain pecularities of POSIX ACLs. That problem would not exist
-if the type passed down into the filesystem would be a `kuid_t` and `kgid_t`
-right from the start.
+`posix_acl_fix_xattr_from_user()`/`posix_acl_fix_xattr_to_user()` and thus is
+also irrelevant for `make_vfsuid()`/`make_vfsgid()` and
+`from_vfsuid()`/`from_vfsgid()`. That itself is already a feat because the
+developer needs to be aware of the callchain pecularities of POSIX ACLs. That
+problem would not exist if the type passed down into or up from the filesystem
+would stay a `kuid_t`/`kgid_t` right until the moment where we transition
+between the VFS <-> userspace or backingstore <-> VFS boundary.
 
 Second, the `mnt_idmapping` is a property of the VFS that is tied to a mount
 created for a specific filesystem. So the `mnt_idmapping` cannot be taken into
-account for `ACL_USER` and `ACL_GROUP` POSIX ACLs in some early place of the
-callchains. Since they are a property of each layer in a filesystem stack
-generated by `overlayfs` they need to be taken into account at specific places
-in the callchain.
+account for `ACL_USER`/`ACL_GROUP` POSIX ACLs in some early place of a stacking
+callchain that `overlayfs` generates. Since they are a property of each layer in
+a filesystem stack generated by `overlayfs` they need to be taken into account
+at specific places in the callchain.
 
 So consider the callchain we abbreviated earlier to make the stacking of
 `vfs_setxattr()` calls for `overlayfs` more obvious:
@@ -855,12 +913,12 @@ We can see that the `mnt_idmapping` is applied outside of `vfs_setxattr()` in
 `do_setxattr()`.
 
 Let's assume we have a filesystem that has a POSIX ACL for `ACL_USER` set with
-`u4` stored on the backing device and we create an idmapped mount with
+`u4` stored on the backing store and we create an idmapped mount with
 `k0:v10000000:r65536` so that a caller with the `caller_idmapping`
 `u0:k10000000:r65536` will see the POSIX ACL as being owned by `u4` when
 retrieving it. Currently this does not work:
 
-(14)
+(15)
 
     mnt_idmapping:    k0:v10000000:r65536
     caller_idmapping: u0:k10000000:r65536
@@ -894,29 +952,30 @@ retrieving it. Currently this does not work:
     26                       u-1 = from_kuid(u0:k10000000:r65536 /* caller_idmapping */, k4);
     27              }
 
-We can see in (14) line 27 that the translation yield `u-1` which just means
+We can see in (15) line 26 that the translation yields `u-1` which just means
 that the `caller_idmapping` doesn't contain a mapping for `k4`. And the reason
-is that the `mnt_idmapping` never got taken into account which would have ensure
-that `k10000004` would've been returned which does have a mapping in the
+is that the `mnt_idmapping` never got taken into account which would have
+ensured that `k10000004` would've been returned which does have a mapping in the
 `caller_idmapping`.
 
 The reason why the `mnt_idmapping` wasn't taken into account is that the the
 translation happens only in the top layer of the filesystem stack. In other
-words, the translation happens for the `overlayfs` filesystem and the
+words, the translation happens for the `overlayfs` filesystem but obviously the
 `overlayfs` filesystem has not been on an idmapped mount (Side-note: In fact,
-`overlayfs` can only be mounted on top of idmapped mounts but it does not
+`overlayfs` can only be mounted _on top of_ idmapped mounts but it does not
 support the creation of idmapped mount and probably never will.).
 
-The translation step involving the `mnt_idmapping` needs to happen in
-`vfs_getxattr()` and `vfs_setxattr()` so that the VFS can take the
-`mnt_idmapping` into account for each filesystem it is called upon.
+So the translation step involving the `mnt_idmapping` needs to happen in
+`vfs_getxattr()`/`vfs_setxattr()` so that the VFS can take the `mnt_idmapping`
+into account for each filesystem it is called upon.
 
-Starting with Linux v5.20 this is exactly what happens. Instead of performing
-the `mnt_idmapping` translations in `posix_acl_fix_xattr_from_user()` and
-`posix_acl_fix_xattr_to_user()` the `mnt_idmapping` is taken into account in
-`vfs_setxattr()` and `vfs_getxattr()`:
+Starting with Linux v5.20 this is exactly what will be done. Instead of
+performing the `mnt_idmapping` translations in
+`posix_acl_fix_xattr_from_user()`/`posix_acl_fix_xattr_to_user()` right in
+`do_getxattr()`/`do_setxattr()` the `mnt_idmapping` is now taken into account in
+`vfs_setxattr()`/`vfs_getxattr()`:
 
-(15)
+(16)
 
     mnt_idmapping:    k0:v10000000:r65536
     caller_idmapping: u0:k10000000:r65536
@@ -978,7 +1037,7 @@ the `mnt_idmapping` translations in `posix_acl_fix_xattr_from_user()` and
     54                                                          }
     55                            -> revert_creds()
 
-(16)
+(17)
 
     mnt_idmapping:    k0:v10000000:r65536
     caller_idmapping: u0:k10000000:r65536
@@ -1025,50 +1084,56 @@ the `mnt_idmapping` translations in `posix_acl_fix_xattr_from_user()` and
     39              }
 
 A bug like this seems pretty obvious in hindsight but in fact it really isn't
-when the type system is flouted as it did. And looking closely you will see that
-this type safety issue is haunting is even now as we constantly need to abuse
-the `initial_idmapping` just for the sake of convertion between the different
-types and to be able to continue abusing the uapi `struct posix_acl_xattr_entry`
-to pass `kuid_t` and `kgid_t` as `uid_t` and `gid_t` values.
+when the type system is flouted. And looking closely you will see that this type
+safety issue is haunting us even now as we constantly need to abuse the
+`initial_idmapping` just for the sake of converting between the different types
+and to be able to continue abusing the uapi `struct posix_acl_xattr_entry` to
+pass `kuid_t` and `kgid_t` as `uid_t` and `gid_t` values.
 
 ## Confusing `fs_idmapping` relevance
 
 A while ago we received a few questions about the role of the `fs_idmapping` for
 POSIX ACLs as we were fixing the `overlayfs` POSIX ACL handling on top of
-idmapped layers where I explained that the `mnt_idmapping` needs to be handled
+idmapped layers where we explained that the `mnt_idmapping` needs to be handled
 in `vfs_getxattr()`/`vfs_setxattr()`.
 
-The question was why `posix_acl_fix_xattr_from_user()` and
-`posix_acl_fix_xattr_to_user()` couldn't just be moved into `vfs_setxattr()` and
-`vfs_getxattr()` and simply taking the `fs_idmapping` into account in these
-helpers.
+The question was why
+`posix_acl_fix_xattr_from_user()`/`posix_acl_fix_xattr_to_user()` couldn't just
+be moved into `vfs_setxattr()`/`vfs_getxattr()` and simply taking the
+`fs_idmapping` into account in these helpers.
 
 This questions shows how dangerous the type subversion is. The fact is that the
-`fs_idmapping` is __entirely irrelevant__ for `posix_acl_fix_xattr_from_user()`
-and `posix_acl_fix_xattr_to_user()` as we've seen. The reason why it __seems__
-relevant is that we convert between a `kuid_t`/`kgid_t` and `uid_t`/`gid_t` but
-that conversion is entirely based on a hack to pass `kuid_t`/`kgid_t` in a uapi
-`struct posix_acl_xattr_entry` as `uid_t`/`gid_t`.
+`fs_idmapping` is __entirely irrelevant__ for
+`posix_acl_fix_xattr_from_user()`/`posix_acl_fix_xattr_to_user()` as we've seen.
+The reason why it __seems__ relevant is that we convert between a
+`kuid_t`/`kgid_t` and `uid_t`/`gid_t` but that conversion is entirely based on a
+hack to pass `kuid_t`/`kgid_t` in a uapi `struct posix_acl_xattr_entry` as
+`uid_t`/`gid_t`.
 
 For a stacking filesystem the `fs_idmapping` of the top layer needs to be
 transparent with respect to the ownership of things such as `inode->i_uid`,
 `inode->i_gid`, `ACL_USER`/`ACL_GROUP` and POSIX ACLs and filesystem
 capabilities.
 
-The general idea is that right at the userspace to VFS boundary any
+The general idea is that right at the userspace <-> VFS boundary any
 `uid_t`/`gid_t` passed in from userspace is immediately turned into a
 `kuid_t`/`kgid_t`. The `kuid_t`/`kgid_t` is kept and only translated into a
-`uid_t`/`gid_t` at the VFS to backing device boundary, i.e., when a write to a
-backing device occurs.
+`uid_t`/`gid_t` at the VFS <-> backing store boundary, i.e., when a write to a
+backing store occurs. The same applies for the backing store <-> VFS boundary
+where the `uid_t`/`gid_t` stored in the backing store needs to be turned into a
+`kuid_t`/`kgid_t` and only ever converted back into `uid_t`/`gid_t` at the VFS
+<-> userspace boundary.
 
-A great example is a simple `chown()` operation. In `chown_common()` the passed
-in `uid_t`/`gid_t` is turned into `kuid_t`/`kgid_t` in the `caller_idmapping`.
-The `notify_change()` helper is called to determine whether the caller is
-allowed to perform the ownership change. Part of that is validating via
-`kuid_has_mapping()`/`kgid_has_mapping()` that the requested `kuid_t`/`kgid_t`
-has a mapping in the `fs_idmapping`. If it does we know we can translate the
-`kuid_t`/`kgid_t` back into `uid_t`/`gid_t` when writing to the backing device
-later on. But nowhere do we subvert the type system.
+A great example tol illustrate the point is a simple `chown()` operation. In
+`chown_common()` the passed in `uid_t`/`gid_t` is turned into `kuid_t`/`kgid_t`
+in the `caller_idmapping`. The `notify_change()` helper is then called to
+determine whether the caller is allowed to perform the ownership change. Part of
+that is validating via `kuid_has_mapping()`/`kgid_has_mapping()` that the
+requested `kuid_t`/`kgid_t` has a mapping in the `fs_idmapping`. If it does we
+know we can translate the `kuid_t`/`kgid_t` back into `uid_t`/`gid_t` when
+writing to the backing store later on. But nowhere do we subvert the type
+system by converting that `kuid_t`/`kgid_t` back into `uid_t`/`gid_t` let alone
+storing it anwywhere to be operated on later.
 
 For `overlayfs` the `chown()` operation is exactly similar just that permission
 checking is performed twice as `notify_change()` is called once on the
@@ -1078,16 +1143,19 @@ mounter of the `overlayfs` filesystem into account.
 
 Similarly, when we report ownership information of a file the lower layer will
 fill in `struct kstat` with the ownership information based on the
-`fs_idmapping` and `mnt_idmapping` of the lower layer. The `fs_idmapping` and
-`caller_idmapping` of the `overlayfs` mounter are entirely irrelevant for this.
+`fs_idmapping` and `mnt_idmapping` of the relevant lower layer. But the
+`fs_idmapping` and `caller_idmapping` of the `overlayfs` mounter are entirely
+irrelevant for this.
 
 This is very crucial to notice as taking the `fs_idmapping` or
 `caller_idmapping` for `overlayfs` into account would mean that `overlayfs`
 changes the ownership of the underlying filesystem objects when mounted inside
-of a user namespace. That would very likely be a security issue.
+of a user namespace. That would be a pretty nasty security issue.
 
-But this is exactly what moving `posix_acl_fix_xattr_from_user()` and
-`posix_acl_fix_fix_xattr_to_user()` into `vfs_getxattr()` and `vfs_setxattr()`
-would do. If these helpers were relocated and also would allow to take the
-`fs_idmapping` into account then POSIX ACL ownership would be changed by the
-`overlayfs` layer for the underlying filesystem.
+But this is exactly what moving
+`posix_acl_fix_xattr_from_user()`/`posix_acl_fix_fix_xattr_to_user()` into
+`vfs_getxattr()`/`vfs_setxattr()` would amount to. If these helpers were
+relocated and would be changed to take the `fs_idmapping` into account then
+POSIX ACL ownership would be changed by the `overlayfs` layer causing wrong
+values for `ACL_USER`/`ACL_GROUP` to be stored in the backing store of the
+underlying filesystem.
