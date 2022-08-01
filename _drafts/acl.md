@@ -246,11 +246,11 @@ user namespace but has can never have a device backing it.
     23                                  {
     24                                           true = kuid_has_mapping(&init_user_ns /* fs_idmapping */, k10000004);
     25                                  }
-    26                                  -> i_op->set_acl() == xfs_set_acl()  
+    26                                  -> i_op->set_acl() == xfs_set_acl()
     27                                     {
     28                                             u10000004 = from_kuid(&init_user_ns /* fs_idmapping */, k10000004);
     29                                     }
-      
+
 (4) `xfs`: `getxattr()`
 
     mnt_idmapping:    u0:k0:r4294967295
@@ -283,7 +283,7 @@ user namespace but has can never have a device backing it.
 
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k0:r4294967295  
+    fs_idmapping:     u0:k0:r4294967295
 
      1 sys_setxattr()
      2 -> path_setxattr()
@@ -309,7 +309,7 @@ user namespace but has can never have a device backing it.
     23                                   {
     24                                            true = kuid_has_mapping(&init_user_ns /* fs_idmapping */, k10000004);
     25                                   }
-    26                                   -> i_op->set_acl() == fuse_set_acl()  
+    26                                   -> i_op->set_acl() == fuse_set_acl()
     27                                      -> posix_acl_to_xattr(&init_user_ns /* fs_idmapping */, ...)
     28                                         {
     29                                                  u10000004 = from_kuid(&init_user_ns /* fs_idmapping */, k10000004);
@@ -319,7 +319,7 @@ user namespace but has can never have a device backing it.
 
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k0:r4294967295  
+    fs_idmapping:     u0:k0:r4294967295
 
      1 sys_getxattr()
      2 -> path_getxattr()
@@ -330,7 +330,7 @@ user namespace but has can never have a device backing it.
      7                 -> handler->get == posix_acl_xattr_get()
      8                    -> get_acl()
      9                       -> i_op->get_acl() == fuse_get_acl()
-    10                          -> posix_acl_from_xattr(u0:k0:r4294967295 /* fs_idmapping */, ...) 
+    10                          -> posix_acl_from_xattr(u0:k0:r4294967295 /* fs_idmapping */, ...)
     11                             {
     12                                  k10000004 = make_kuid(u0:k0:r4294967295 /* fs_idmapping */, u10000004);
     13                             }
@@ -374,7 +374,7 @@ user namespace but has can never have a device backing it.
     23                                   {
     24                                            true = kuid_has_mapping(u0:k10000000:r65536 /* fs_idmapping */, k10000004);
     25                                   }
-    26                                   -> i_op->set_acl() == fuse_set_acl()  
+    26                                   -> i_op->set_acl() == fuse_set_acl()
     27                                      -> posix_acl_to_xattr(u0:k10000000:r65536 /* fs_idmapping */, ...)
     28                                         {
     29                                                  u4 = from_kuid(u0:k10000000:r65536 /* fs_idmapping */, k10000004);
@@ -395,7 +395,7 @@ user namespace but has can never have a device backing it.
      7                 -> handler->get == posix_acl_xattr_get()
      8                    -> get_acl()
      9                       -> i_op->get_acl() == fuse_get_acl()
-    10                          -> posix_acl_from_xattr(u0:k10000000:r65536 /* fs_idmapping */, ...) 
+    10                          -> posix_acl_from_xattr(u0:k10000000:r65536 /* fs_idmapping */, ...)
     11                             {
     12                                  k10000004 = make_kuid(u0:k10000000:r65536 /* fs_idmapping */, u4);
     13                             }
@@ -413,8 +413,8 @@ user namespace but has can never have a device backing it.
 
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k0:r4294967295 
-    ovl_idmapping:    u0:k0:r4294967295 
+    fs_idmapping:     u0:k0:r4294967295
+    ovl_idmapping:    u0:k0:r4294967295
 
      1 sys_setxattr()
      2 -> path_setxattr()
@@ -452,7 +452,7 @@ user namespace but has can never have a device backing it.
     35                                                       {
     36                                                                true = kuid_has_mapping(&init_user_ns /* fs_idmapping */, k10000004);
     37                                                       }
-    38                                                       -> i_op->set_acl() == xfs_set_acl()  
+    38                                                       -> i_op->set_acl() == xfs_set_acl()
     39                                                          {
     40                                                                  u10000004 = from_kuid(&init_user_ns, k10000004);
     41                                                          }
@@ -462,8 +462,8 @@ user namespace but has can never have a device backing it.
 
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k0:r4294967295 
-    ovl_idmapping:    u0:k0:r4294967295 
+    fs_idmapping:     u0:k0:r4294967295
+    ovl_idmapping:    u0:k0:r4294967295
 
      1 sys_getxattr()
      2 -> path_getxattr()
@@ -495,8 +495,8 @@ user namespace but has can never have a device backing it.
 
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k10000000:r65536 
-    ovl_idmapping:    u0:k0:r4294967295 
+    fs_idmapping:     u0:k10000000:r65536
+    ovl_idmapping:    u0:k0:r4294967295
 
      1 sys_setxattr()
      2 -> path_setxattr()
@@ -535,7 +535,7 @@ user namespace but has can never have a device backing it.
     36                                                           {
     37                                                                    true = kuid_has_mapping(u0:k10000000:r65536 /* fs_idmapping */, k10000004);
     38                                                           }
-    39                                                           -> i_op->set_acl() == fuse_set_acl()  
+    39                                                           -> i_op->set_acl() == fuse_set_acl()
     40                                                              -> posix_acl_to_xattr(u0:k10000000:r65536 /* fs_idmapping */, ...)
     41                                                                 {
     42                                                                          u4 = from_kuid(u0:k10000000:r65536 /* fs_idmapping */, k10000004);
@@ -546,8 +546,8 @@ user namespace but has can never have a device backing it.
 
     mnt_idmapping:    u0:k0:r4294967295
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k10000000:r65536 
-    ovl_idmapping:    u0:k0:r4294967295 
+    fs_idmapping:     u0:k10000000:r65536
+    ovl_idmapping:    u0:k0:r4294967295
 
      1 sys_getxattr()
      2 -> path_getxattr()
@@ -562,7 +562,7 @@ user namespace but has can never have a device backing it.
     11                             -> handler->get == posix_acl_xattr_get()
     12                                -> get_acl()
     13                                   -> i_op->get_acl() == fuse_get_acl()
-    14                                      -> posix_acl_from_xattr(u0:k10000000:r65536 /* fs_idmapping */, ...) 
+    14                                      -> posix_acl_from_xattr(u0:k10000000:r65536 /* fs_idmapping */, ...)
     15                                         {
     16                                              k10000004 = make_kuid(u0:k10000000:r65536 /* fs_idmapping */, u4);
     17                                         }
@@ -578,7 +578,7 @@ user namespace but has can never have a device backing it.
 
 As we've said `xfs` and the others cannot be mounted with an idmapping and thus
 the relevant `fs_idmapping` is the `initial_idmapping`. This has the
-consequence that some implementation details are more difficult to spot. 
+consequence that some implementation details are more difficult to spot.
 
 For example, in the `setxattr()` callchain (3) line 28 and in the `getxattr()`
 callchain (4) line 11 the `initial_idmapping` is used because `xfs` can only be
@@ -651,7 +651,7 @@ This is a whole lot of subtlety and ripe for confusion and bugs.
 
 On `overlayfs` the callchains become more complicated because `overlayfs` is a
 stacking filesystems. What this means is that certain functions will be hit
-twice in an `overlayfs` callchain. 
+twice in an `overlayfs` callchain.
 
 For example, the VFS encapsulates some core filesystem functionality in helpers
 prefixed with `vfs_` such as `vfs_setxattr()` or `vfs_getxattr()`. You can spot
@@ -661,7 +661,7 @@ A stacking filesystem such as `overlayfs` will need to call these helpers in
 order to perform operations on the filesystem it is stacked upon. For example,
 if you mount an `overlayfs` filesystem:
 
-```sh
+```
 mount -t overlay overlay -o lowerdir=/lower_layer_1:lower_layer_2, \
                             upperdir=/writable_layer/upper,        \
                             workdir=/writable_layer/work           \
@@ -730,13 +730,13 @@ file and fills in ownership information via:
 ```c
 static inline void i_uid_write(struct inode *inode, uid_t uid)
 {
-	inode->i_uid = make_kuid(i_user_ns(inode), uid);
+        inode->i_uid = make_kuid(i_user_ns(inode), uid);
 }
 ```
 
 this comes down to:
 
-	k10000000 = make_kuid(u0:k10000000:r65536 /* fs_idmapping */, u0);
+    k10000000 = make_kuid(u0:k10000000:r65536 /* fs_idmapping */, u0);
 
 and means the `struct inode` for the file will contain `k10000000` in
 `inode->i_uid` and `inode->i_gid`.
@@ -762,7 +762,7 @@ members have type `kuid_t` and `kgid_t` while the device ownership is expressed
 in terms of `uid_t` and `gid_t`. In any case, for this example `inode->i_uid`
 and `inode->i_gid` for the file will contain `k0`:
 
-	k0 = make_kuid(&init_user_ns /* fs_idmapping */, u0);
+    k0 = make_kuid(&init_user_ns /* fs_idmapping */, u0);
 
 Now assume we have created an idmapped mount for some directory or the whole
 filesystem with the idmapping `u0:k10000000:r65536`. This means that the kernel
@@ -891,10 +891,10 @@ The interesting question is where the `mnt_idmapping` is currently applied:
      4       -> do_setxattr()
      5          -> setxattr_convert()
      6             -> posix_acl_fix_xattr_from_user() /* translation step */
-     7                  
-     8                                                                                                
-    10                                                                          
-    11                  
+     7
+     8
+    10
+    11
     12           -> vfs_setxattr() /* overlayfs */
     13
     14
@@ -922,7 +922,7 @@ retrieving it. Currently this does not work:
 
     mnt_idmapping:    k0:v10000000:r65536
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k0:r4294967295 
+    fs_idmapping:     u0:k0:r4294967295
 
      1 sys_getxattr()
      2 -> path_getxattr()
@@ -979,7 +979,7 @@ performing the `mnt_idmapping` translations in
 
     mnt_idmapping:    k0:v10000000:r65536
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k0:r4294967295 
+    fs_idmapping:     u0:k0:r4294967295
 
      1 sys_setxattr()
      2 -> path_setxattr()
@@ -1031,7 +1031,7 @@ performing the `mnt_idmapping` translations in
     48                                                       {
     49                                                                true = kuid_has_mapping(&init_user_ns /* fs_idmapping */, k4);
     50                                                       }
-    51                                                       -> i_op->set_acl() == xfs_set_acl()  
+    51                                                       -> i_op->set_acl() == xfs_set_acl()
     52                                                          {
     53                                                                  u4 = from_kuid(&init_user_ns, k4);
     54                                                          }
@@ -1041,7 +1041,7 @@ performing the `mnt_idmapping` translations in
 
     mnt_idmapping:    k0:v10000000:r65536
     caller_idmapping: u0:k10000000:r65536
-    fs_idmapping:     u0:k0:r4294967295 
+    fs_idmapping:     u0:k0:r4294967295
 
      1 sys_getxattr()
      2 -> path_getxattr()
