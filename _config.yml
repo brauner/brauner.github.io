@@ -1,11 +1,12 @@
 remote_theme: jekyll/minima
 title: brauner's blog
-author: Christian Brauner
+author:
+  name: Christian Brauner
 description: > # this means to ignore newlines until "twitter_username:"
   My Linux kernel contributions are made using the following email addresses
   (Simply search for them in the Linux kernel git logs.):
+  brauner(at)kernel(dot)org
   christian(at)brauner(dot)io
-  christian.brauner(at)ubuntu(dot)com
   kernel tree: https://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux.git/
   homepage: https://people.kernel.org/brauner
 url: "https://brauner.io"
