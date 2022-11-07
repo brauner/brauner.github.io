@@ -27,3 +27,7 @@ kramdown:
   syntax_highlighter: rouge
 include:
   - "_img"
+social_links:
+  mastodon:
+    - username: brauner
+      instance: mastodon.social
