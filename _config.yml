@@ -15,12 +15,9 @@ minima:
     mastodon:
       - username: brauner
         instance: mastodon.social
-    twitter:
-      - username: brau_ner
-    github:
-      - username: brauner
-    linkedin:
-      - username: christian-brauner-586185110
+    twitter: brau_ner
+    github: brauner
+    linkedin: christian-brauner-586185110
 show_excerpts: false
 disqus:
   shortname: https-brauner-github-io
