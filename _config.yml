@@ -1,4 +1,4 @@
-theme: minima
+remote_theme: jekyll/minima
 title: brauner's blog
 author: Christian Brauner
 description: > # this means to ignore newlines until "twitter_username:"
@@ -23,6 +23,7 @@ disqus:
   shortname: https-brauner-github-io
 plugins:
   - jekyll-feed
+  - jekyll-remote-theme
 markdown: kramdown
 kramdown:
   input: GFM
