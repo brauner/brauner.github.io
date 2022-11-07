@@ -10,15 +10,17 @@ description: > # this means to ignore newlines until "twitter_username:"
   homepage: https://people.kernel.org/brauner
 url: "https://brauner.io"
 timezone: Europe/Berlin
-mastodon:
-  - username: brauner
-    instance: mastodon.social
-freenode_username: brauner
-twitter_username: brau_ner
-github_username: brauner
-facebook_username: freiherrgarbage
-instagram_username: brau_ner
-linkedin_username: christian-brauner-586185110
+minima:
+  social_links:
+    mastodon:
+      - username: brauner
+        instance: mastodon.social
+    twitter:
+      - username: brau_ner
+    github:
+      - username: brauner
+    linkedin:
+      - username: christian-brauner-586185110
 show_excerpts: false
 disqus:
   shortname: https-brauner-github-io
