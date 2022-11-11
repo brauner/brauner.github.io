@@ -1,4 +1,4 @@
-remote_theme: jekyll/minima
+theme: minima
 title: brauner's blog
 author:
   name: Christian Brauner
