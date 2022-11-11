@@ -3,8 +3,6 @@ layout: post
 title: The Seccomp Notifier - Cranking up the crazy with bpf()
 ---
 
-# The Seccomp Notifier - Cranking up the crazy with bpf()
-
 In my last article I looked at the [seccomp notifier](https://people.kernel.org/brauner/the-seccomp-notifier-new-frontiers-in-unprivileged-container-development) in detail and how it allows us to make unprivileged containers way more capable (Sorry, kernel joke.). This is the (very) crazy (but very short) sequel. (Sorry Jon, no novella this time. :))
 
 Last time I mentioned two new features that we had landed:

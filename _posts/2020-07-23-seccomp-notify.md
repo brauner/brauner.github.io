@@ -1,4 +1,7 @@
-# The Seccomp Notifier - New Frontiers in Unprivileged Container Development
+---
+layout: post
+title: The Seccomp Notifier - New Frontiers in Unprivileged Container Development
+---
 
 #### Introduction
 
