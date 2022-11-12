@@ -7,4 +7,8 @@
 layout: home
 ---
 
-Hey!
+mastodon: [@brauner@mastodon.social](https://mastodon.social/@brauner)
+
+Twitter: [@brau_ner](https://twitter.com/brau_ner)
+
+github: [brauner](https://github.com/brauner)
