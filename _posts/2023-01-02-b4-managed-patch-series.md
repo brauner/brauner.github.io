@@ -7,6 +7,12 @@ This is a (live-[?])blog about managing a patch series solely with `b4`.
 It's "live" as I'm writing this down while fumbling my way through this adventure.
 No corrections other than grammer and spelling (but no guarantees for the correctness of either).
 
+__UPDATE START__
+
+After having written this Konstantin (the author of `b4`) pointed me to https://b4.docs.kernel.org which answers a few questions I had here.
+
+__UPDATE END__
+
 Ok, I have a `xfstests` patch to send.
 The patch has been written and tested.
 I've already created a branch `fstests.setgid.v6.2` based on `xfstests`'s `for-next` branch.
@@ -278,6 +284,19 @@ Subject: [PATCH v5 02/30] some: commmimt
 ```
 
 It be excellent if that were possible.
+
+__UPDATE START__
+
+This seems possible:
+
+> What if I only have a single patch?
+>
+> When you only have a single patch, the contents of the cover letter will be mixed into the “under-the-cut” portion of the patch. You can just use the cover letter for extra To/Cc trailers and changelog entries as your patch goes through revisions. If you add more commits in the future version, you can fill in the cover letter content with additional information about the intent of your entire series.
+
+(https://b4.docs.kernel.org/en/latest/contributor/prep.html#what-if-i-only-have-a-single-patch)
+
+__UPDATE END__
+
 For the single patch I can do with just using the `--to` and `--cc` flags to `b4 send`.
 So let's try this but better safe than sorry and also let's take the chance to try `--dry-run`:
 
