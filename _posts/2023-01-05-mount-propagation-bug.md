@@ -108,7 +108,7 @@ In previous years [Seth Forshee](https://github.com/sforshee) and I had reported
 Each of these bugs had been hard to understand but only required trivial patches in order to be fixed.
 My expectation was no different for this bug.
 
-The mount propagation code uses the now obsolete 'slave' and 'master' concepts to express dependency relationships.
+The mount propagation code uses the now obsolete "slave" and "master" concepts to express dependency relationships.
 As the data structures themselves use these terms they are used here as well.
 
 ## Basic mount propagation concepts
@@ -119,7 +119,7 @@ It propagates a source mount tree `@source_mnt` to all applicable nodes of a des
 While fixing this bug we've gotten confused multiple times due to unclear terminology or missing concepts.
 So we'll start this with some clarifications:
 
-* The terms 'master' or 'peer' denote a shared mount.
+* The terms "master" or "peer" denote a shared mount.
   A shared mount belongs to a peer group.
 
 * A peer group is a set of shared mounts that propagate to each other.
@@ -127,13 +127,13 @@ So we'll start this with some clarifications:
   Shared mounts within the same peer group have the same peer group id.
   The peers in a peer group can be reached via `@shared_mnt->mnt_share`.
 
-* The terms 'slave mount' or 'dependent mount' denote a mount that receives propagation from a peer in a peer group.
+* The terms "slave mount" or "dependent mount" denote a mount that receives propagation from a peer in a peer group.
   Thus, shared mounts may have slave mounts and slave mounts have shared mounts as their master.
   Slave mounts of a given peer in a peer group are listed on that peers slave list available at `@shared_mnt->mnt_slave_list`.
 
-* The term 'master mount' denotes a mount in a peer group.
+* The term "master mount" denotes a mount in a peer group.
   In other words, it denotes a shared mount or a peer mount in a peer group.
-  The term 'master mount' - or 'master' for short - is mostly used when talking in the context of slave mounts that receive propagation from a master mount.
+  The term "master mount" - or "master" for short - is mostly used when talking in the context of slave mounts that receive propagation from a master mount.
   A master mount of a slave identifies the closest peer group a slave mount receives propagation from.
   The master mount of a slave can be identified via `@slave_mount->mnt_master`.
   Different slaves may point to different masters in the same peer group.
