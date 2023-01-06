@@ -104,7 +104,7 @@ unshare --mount --propagation=unchanged -- mount --make-rslave /
 
 while using the [a specific test](https://github.com/linux-test-project/ltp/blob/af98698067f706feeb1729e038eef9aefc12760c/testcases/kernel/fs/fs_bind/bind/fs_bind24.sh#L4) of the LTP mount propagation testsuite, modifying it slightly so that we loop around `mount` and `umount` in the script.
 
-In previous years Seth Forshee and I had reported and fixed issues in the mount propagation code.
+In previous years [Seth Forshee](https://github.com/sforshee) and I had reported and fixed issues in the mount propagation code.
 Each of these bugs had been hard to understand but only required trivial patches in order to be fixed.
 My expectation was no different for this bug.
 
