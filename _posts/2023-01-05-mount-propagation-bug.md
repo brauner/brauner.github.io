@@ -149,8 +149,9 @@ So we'll start this with some clarifications:
 * A shared-slave mount is a slave mount to a peer group `pg1` while also a peer in another peer group `pg2`.
   This simply means that a peer group may receive propagation from another peer group.
 
-  If a peer group `pg1` is a slave to another peer group `pg2` then all peers in peer group `pg1` point to the same peer in peer group `pg2` via `->mnt_master`.
-  So all peers in peer group `pg1` appear on the same `->mnt_slave_list`: they cannot be slaves to different peer groups.
+  If a peer group `pg2` is a slave to another peer group `pg1` then all peers in peer group `pg2` point to the same peer in peer group `pg1` via `->mnt_master`.
+  So all peers in peer group `pg2` appear on the same `->mnt_slave_list` of a peer in `pg1`.
+  So they cannot be slaves to different peer groups or even different peers in the same peer group.
 
 * A pure slave mount is a slave to a peer group but is not a peer in another peer group.
 
