@@ -497,3 +497,7 @@ A bug like this is very difficult to fix without a detailed understanding of wha
 Let's not talk about the amount of time that was sunk into fixing this.
 
 Oh, and as predicted the actual [fix](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=11933cf1d91d57da9e5c53822a540bbdc2656c16) was trivial.
+
+# Contributing fixes, improvements, or corrections to this post
+
+If you have fixes, improvements, or corrections feel free to email them to me or simply open a pull request against [the repository for this blog](https://github.com/brauner/brauner.github.io).
