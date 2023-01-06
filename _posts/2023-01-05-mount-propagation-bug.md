@@ -364,7 +364,7 @@ Hence, by walking up `@last_source->mnt_master`, each of which is mounted on a n
 
 So, for each new destination propagation node `@m` we use the previous copy of `@last_source` and the fact it's mounted on the previous propagation node `@last_dest` via `@last_source->mnt_master->mnt_parent` to determine what the master of the new copy of `@last_source` needs to be.
 
-The goal is to find the _closest_ master that the new copy of the source mount tree we are about to create and mount on a slave `@m` in the destination propagation tree needs to pick.
+The goal is to select a master in the __closest__ peer group for the new copy of the source mount tree we are about to create and mount on a slave `@m` in the destination propagation tree.
 This means we want to find a suitable master in the propagation group.
 
 As the structure of the source mount propagation tree we create mirrors the propagation structure of the destination propagation
