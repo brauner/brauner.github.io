@@ -256,14 +256,14 @@ The hard case is when we're dealing with an `@m` which is a pure slave mount or 
 For each pure slave or peer group in the destination propagation tree we need to make sure that the master for new copies of `@source_mnt` is a mount from the source mount propagation tree whose parent is in the chain of masters of the parent for the new child mount.
 This is a mouthful but as far as we can tell that's the core of it all.
 
-But, if we keep track of the masters in the destination propagation tree `@m` we can use the information to find the correct master for each copy of the source mount tree we create and mount at the slaves in the destination propagation tree `@m`.
+But, if we keep track of the masters in the destination propagation tree we can use the information to find the correct master for each copy of the source mount tree we create and mount at the slaves in the destination propagation tree .
 
 Let's walk through the base case as that's still fairly easy to grasp.
 
 If we're dealing with the first slave in the propagation group that `@dest_mnt` is in then we don't yet have marked any masters in the destination propagation tree.
 
 We know the master for the first slave to `@dest_mnt`'s peer group is simply `@dest_mnt`.
-So we expect this algorithm to yield a copy of the source mount tree that was mounted on a peer in `@dest_mnt`'s peer group as the master for the copy of the source mount tree we want to mount at the first slave `@m`:
+So we expect this algorithm to yield a copy of the source mount tree that was mounted on a peer in `@dest_mnt`'s peer group as the master for the copy of the source mount tree we want to mount at the first slave in the destination propagation tree:
 
 ```c
 for (n = m; ; n = p) {
