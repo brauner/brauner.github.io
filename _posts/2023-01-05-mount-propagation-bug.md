@@ -256,7 +256,7 @@ The hard case is when we're dealing with an `@m` which is a pure slave mount or 
 For each pure slave or peer group in the destination propagation tree we need to make sure that the master for new copies of `@source_mnt` is a mount from the source mount propagation tree whose parent is in the chain of masters of the parent for the new child mount.
 This is a mouthful but as far as we can tell that's the core of it all.
 
-But, if we keep track of the masters in the destination propagation tree we can use the information to find the correct master for each copy of the source mount tree we create and mount at the slaves in the destination propagation tree .
+But, if we keep track of the masters in the destination propagation tree we can use the information to find the correct master for each copy of the source mount tree we create and mount at the slaves in the destination propagation tree. Keeping track of masters in the destination propagation tree can be done by temporarily "marking" each master with the `MNT_MARKED` flag (Note that this flag is also abused for unmounting but that's another topic.).
 
 Let's walk through the base case as that's still fairly easy to grasp.
 
@@ -290,7 +290,7 @@ p = n->mnt_master;
 ```
 
 such that `@p` now points to a peer or `@dest_mnt` itself.
-We walk up one more level since we don't have any marked mounts.
+We walk up one more level since we don't have any marked masters.
 So we end up with:
 
 ```c
