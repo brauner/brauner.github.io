@@ -102,13 +102,13 @@ It turned out that the reliability of the reproducer could be significantly incr
 unshare --mount --propagation=unchanged -- mount --make-rslave /
 ```
 
-while using the [a specific test](https://github.com/linux-test-project/ltp/blob/af98698067f706feeb1729e038eef9aefc12760c/testcases/kernel/fs/fs_bind/bind/fs_bind24.sh#L4) of the LTP mount propagation testsuite modifying it slightly so that we loop around `mount` and `umount` in the script.
+while using the [a specific test](https://github.com/linux-test-project/ltp/blob/af98698067f706feeb1729e038eef9aefc12760c/testcases/kernel/fs/fs_bind/bind/fs_bind24.sh#L4) of the LTP mount propagation testsuite, modifying it slightly so that we loop around `mount` and `umount` in the script.
 
 In previous years Seth Forshee and I had reported and fixed issues in the mount propagation code.
 Each of these bugs had been hard to understand but only required trivial patches in order to be fixed.
 My expectation was no different for this bug.
 
-The terminology used in the mount propagation code used the now obsolete 'slave' and 'master' concepts to express dependency relationships.
+The mount propagation code uses the now obsolete 'slave' and 'master' concepts to express dependency relationships.
 As the data structures themselves use these terms they are used here as well.
 
 ## Basic mount propagation concepts
@@ -152,7 +152,7 @@ So we'll start this with some clarifications:
   If a peer group `pg1` is a slave to another peer group `pg2` then all peers in peer group `pg1` point to the same peer in peer group `pg2` via `->mnt_master`.
   So all peers in peer group `pg1` appear on the same `->mnt_slave_list`: they cannot be slaves to different peer groups.
 
-* A pure slave mount is a slave mount that is a slave to a peer group but is not a peer in another peer group.
+* A pure slave mount is a slave to a peer group but is not a peer in another peer group.
 
 * A propagation group denotes the set of mounts consisting of a single peer group `pg1` and all slave mounts and shared-slave mounts that point to a peer in that peer group via `->mnt_master`.
   This means all slave mounts such that `@slave_mnt->mnt_master->mnt_group_id` is equal to `@shared_mnt->mnt_group_id`.
@@ -169,7 +169,7 @@ So we'll start this with some clarifications:
 
 ## The bug in one sentence
 
-The `propagate_mnt()` functions contains a bug where it fails to terminate at peers of `@source_mnt` when looking up copies of the source mount that become masters for copies of the source mount tree mounted on top of slaves in the destination propagation tree causing a NULL dereference.
+The `propagate_mnt()` function contains a bug where it fails to terminate at peers of `@source_mnt` when searching for a copy of `@source_mnt` which is a suitable master for a new copy mounted on top of a slave in the destination propagation tree, causing a NULL dereference.
 
 ## The impact of the bug
 
@@ -221,7 +221,7 @@ This will become important later.
 The peer loop in `propagate_mnt()` is straightforward.
 We iterate through the peers copying and updating `@last_source` and `@last_dest` as we go through them and mount each copy of the source mount tree `@child` on a peer `@m` in `@dest_mnt`'s peer group.
 
-After `propagate_mnt()` handled the peers in `@dest_mnt`'s peer group `propagate_mnt()` will propagate the source mount tree down the propagation tree that `@dest_mnt`'s peer group propagates to:
+After `propagate_mnt()` handles the peers in `@dest_mnt`'s peer group it will propagate the source mount down the propagation tree that `@dest_mnt`'s peer group propagates to:
 
 ```c
 for (m = next_group(dest_mnt, dest_mnt); m;
@@ -240,17 +240,17 @@ for (m = next_group(dest_mnt, dest_mnt); m;
 The `next_group()` helper will recursively walk the destination propagation tree, descending into each propagation group of the propagation tree.
 
 The important part is that it takes care to propagate the source mount tree to all peers in the peer group of a propagation group before it propagates to the slaves to those peers in the propagation group.
-In other words, it creates and mounts copies of the source mount tree that become masters before it creates and mounts copies of the source mount tree that become slaves to these masters.
+In other words, a mount in the source mount propagation tree which will be a master is always created before that mount's slaves.
 
 It is important to remember that propagating the source mount tree to each mount `@m` in the destination propagation tree simply means that we create and mount new copies `@child` of the source mount tree on `@m` such that `@child->mnt_parent` points to `@m`.
 
 Since we know that each node `@m` in the destination propagation tree headed by `@dest_mnt`'s peer group will be overmounted with a copy of the source mount tree and since we know that the propagation properties of each copy of the source mount tree we create and mount at `@m` will mostly mirror the propagation properties of `@m`.
-We can use that information to create and mount the copies of the source mount tree that become masters before their slaves.
+Since we know that each node `@m` in the destination propagation tree headed by `@dest_mnt`'s peer group will be overmounted with a copy of the source mount, and since we know that the propagation properties of each copy of the source mount tree we create and mount at `@m` will mostly mirror the propagation properties of `@m`, we can use that information to create and mount the copies of the source mount that become masters before their slaves.
 
 The easy case is always when `@m` and `@last_dest` are peers in a peer group of a given propagation group.
-In that case we know that we can simply copy `@last_source` without having to figure out what the master for the new copy `@child` of the source mount tree needs to be as we've done that in a previous call to `propagate_one()`.
+In that case we know that the new copy `@child` should have the same master as `@last_source`, whose master was determined in a previous call to `propagate_one()`.
 
-The hard case is when we're dealing with a slave mount or a shared-slave mount `@m` in a destination propagation group that we need to create and mount a copy of the source mount tree on.
+The hard case is when we're dealing with an `@m` which is a pure slave mount or a shared-slave mount in a new peer group, as we need to find an appropriate mount in the source mount tree to be the master of `@m`.
 
 For each propagation group in the destination propagation tree we propagate the source mount tree to we want to make sure that the copies `@child` of the source mount tree we create and mount on slaves `@m` pick an earlier copy of the source mount tree that we mounted on a master `@m` of the destination propagation group as their master.
 This is a mouthful but as far as we can tell that's the core of it all.
@@ -261,7 +261,7 @@ Let's walk through the base case as that's still fairly easy to grasp.
 
 If we're dealing with the first slave in the propagation group that `@dest_mnt` is in then we don't yet have marked any masters in the destination propagation tree.
 
-We know the master for the first slave to `@dest_mnt`'s peer group is simple `@dest_mnt`.
+We know the master for the first slave to `@dest_mnt`'s peer group is simply `@dest_mnt`.
 So we expect this algorithm to yield a copy of the source mount tree that was mounted on a peer in `@dest_mnt`'s peer group as the master for the copy of the source mount tree we want to mount at the first slave `@m`:
 
 ```c
@@ -298,7 +298,7 @@ p = dest_mnt->mnt_master;
 ```
 
 If `@dest_mnt`'s peer group is not slave to another peer group then `@p` is now `NULL`.
-If `@dest_mnt`'s peer group is a slave to another peer group then `@p` now points to `@dest_mnt->mnt_master` points which is a master outside the propagation tree we're dealing with.
+If `@dest_mnt`'s peer group is a slave to another peer group then `@p` now points to `@dest_mnt->mnt_master`, which is a master outside the propagation tree we're dealing with.
 
 Now we need to figure out the master for the copy of the source mount tree we're about to create and mount on the first slave of `@dest_mnt`'s peer group:
 
@@ -316,7 +316,7 @@ do {
 
 We know that `@last_source->mnt_parent` points to `@last_dest` and `@last_dest` is the last peer in `@dest_mnt`'s peer group we propagated to in the peer loop in `propagate_mnt()`.
 
-Consequently, `@last_source` is the last copy we created and mount on that last peer in `@dest_mnt`'s peer group.
+Consequently, `@last_source` is the last copy we created and mounted on that last peer in `@dest_mnt`'s peer group.
 So `@last_source` is the master we want to pick.
 
 We know that `@last_source->mnt_parent->mnt_master` points to `@last_dest->mnt_master`.
@@ -329,7 +329,7 @@ done = parent->mnt_master == p;
 
 is trivially true in the base condition.
 
-We also know that for the first slave mount of `@dest_mnt`'s peer group that `@last_dest` either points `@dest_mnt` itself because it was initialized to:
+We also know that for the first slave mount of `@dest_mnt`'s peer group, `@last_dest` either points `@dest_mnt` itself because it was initialized to:
 
 ```c
 last_dest = dest_mnt;
@@ -350,7 +350,7 @@ At the end of `propagate_mnt()` we now mark `@m->mnt_master` as the first master
 Thus, we mark `@dest_mnt` itself as a master.
 
 By marking `@dest_mnt` or one of it's peers we are able to easily find it again when we later lookup masters for other copies of the source mount tree we mount copies of the source mount tree on slaves `@m` to `@dest_mnt`'s peer group.
-This, in turn allows us to find the master we selected for the copies of the source mount tree we mounted on master in the destination propagation tree again.
+This in turn allows us to find the masters we selected for the copies of `@source_mnt`, which are always mounted on masters in the destination propagation tree.
 
 The important part is to realize that the code makes use of the fact that the last copy of the source mount tree stashed in `@last_source` was mounted on top of the previous destination propagation node `@last_dest`.
 What this means is that `@last_source` allows us to walk the destination propagation hierarchy the same way each destination propagation node `@m` does.
@@ -359,18 +359,18 @@ If we take `@last_source`, which is the copy of `@source_mnt` we have mounted on
 
 So `@last_source->mnt_parent` will be our hook into the destination propagation tree and each consecutive `@last_source->mnt_master` will lead us to an earlier propagation node `@m` via `@last_source->mnt_master->mnt_parent`.
 
-Hence, by walking up `@last_source->mnt_master`, each of which is mounted on a node that is a master `@m` in the destination propagation tree we can also walk up the destination propagation hierarchy.
+Hence, by walking up `@last_source->mnt_master`, each of which is mounted on a node that is a master in the destination propagation tree, we can also walk up the destination propagation hierarchy.
 
 So, for each new destination propagation node `@m` we use the previous copy of `@last_source` and the fact it's mounted on the previous propagation node `@last_dest` via `@last_source->mnt_master->mnt_parent` to determine what the master of the new copy of `@last_source` needs to be.
 
 The goal is to find the _closest_ master that the new copy of the source mount tree we are about to create and mount on a slave `@m` in the destination propagation tree needs to pick.
 This means we want to find a suitable master in the propagation group.
 
-As the propagation structure of the source mount propagation tree we create mirrors the propagation structure of the destination propagation
+As the structure of the source mount propagation tree we create mirrors the propagation structure of the destination propagation
 tree we can find `@m`'s closest master - i.e., a marked master - which is a peer in the closest peer group that `@m` receives propagation from.
 We store that closest master of `@m` in `@p` as before and record the slave to that master in `@n`
 
-We then search for this master `@p` via `@last_source` by walking up the master hierarchy starting from the last copy of the source mount tree stored in `@last_source` that we created and mounted on the previous destination propagation node `@m`.
+We then search for this master `@p` via `@last_source` by walking up the master hierarchy starting from `@last_source`.
 
 We will try to find the master by walking `@last_source->mnt_master` and by comparing `@last_source->mnt_master->mnt_parent->mnt_master` to `@p`.
 If we find `@p` then we can figure out what earlier copy of the source mount tree needs to be the master for the new copy of the source mount tree we're about to create and mount at the current destination propagation node `@m`.
@@ -404,7 +404,7 @@ So we walk the propagation hierarchy all the way up to `@source_mnt` based on `@
 So terminate on `@source_mnt`, easy peasy.
 Except, that the check misses something that the rest of the algorithm already handles.
 
-If `@dest_mnt` has peers in it's peer group the peer loop in `propagate_mnt()`:
+If `@dest_mnt` has peers in its peer group the peer loop in `propagate_mnt()`:
 
 ```c
 for (n = next_peer(dest_mnt); n != dest_mnt; n = next_peer(n)) {
@@ -429,7 +429,7 @@ Instead it will find the last copy of the source mount tree we created and mount
 And that is a peer of `@source_mnt` not `@source_mnt` itself.
 
 This means, we fail to terminate the loop correctly and ultimately dereference `@last_source->mnt_master->mnt_parent`.
-When `@source_mnt`'s peer group isn't slave to another peer group then `@last_source->mnt_master` is `NULL` causing the splat below.
+When `@source_mnt`'s peer group isn't slave to another peer group then `@last_source->mnt_master` is `NULL` causing the splat above.
 
 For example, assume `@dest_mnt` is a pure shared mount and has three peers in its peer group:
 
