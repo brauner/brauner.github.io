@@ -253,7 +253,7 @@ In that case we know that the new copy `@child` should have the same master as `
 
 The hard case is when we're dealing with an `@m` which is a pure slave mount or a shared-slave mount in a new peer group, as we need to find an appropriate mount in the source mount tree to be the master of `@m`.
 
-For each propagation group in the destination propagation tree we propagate the source mount tree to we want to make sure that the copies `@child` of the source mount tree we create and mount on slaves `@m` pick an earlier copy of the source mount tree that we mounted on a master `@m` of the destination propagation group as their master.
+For each pure slave or peer group in the destination propagation tree we need to make sure that the master for new copies of `@source_mnt` is a mount from the source mount propagation tree whose parent is in the chain of masters of the parent for the new child mount.
 This is a mouthful but as far as we can tell that's the core of it all.
 
 But, if we keep track of the masters in the destination propagation tree `@m` we can use the information to find the correct master for each copy of the source mount tree we create and mount at the slaves in the destination propagation tree `@m`.
