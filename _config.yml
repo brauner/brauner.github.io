@@ -6,7 +6,7 @@ url: "https://brauner.io"
 timezone: Europe/Berlin
 show_excerpts: false
 disqus:
-  shortname: https-brauner-io
+  shortname: https-brauner-github-io
 plugins:
   - jekyll-feed
   - jekyll-remote-theme
