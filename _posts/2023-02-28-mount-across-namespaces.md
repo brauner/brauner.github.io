@@ -276,9 +276,9 @@ and as above we are free to attach the detached mount anywhere we like in the co
 
 # Conclusion
 
-This is really it.
-It's as simple as it sounds.
-This is a powerful delegation mechanism that we've been making heavy use of in `LXD` and is the proper way how to insert mounts into mount namespaces on newer kernels.
+This is really it and as simple as it sounds.
+It is a powerful delegation mechanism making it possible to inject mounts into lesser privileged mount namespace or unprivileged containers.
+We've making heavy use of this `LXD` and it is general the proper way to insert mounts into mount namespaces on newer kernels.
 
 # Contributing fixes, improvements, or corrections to this post
 
