@@ -273,7 +273,6 @@ setns(fd_mntns);
 ```
 
 and as above we are free to attach the detached mount anywhere we like in the container.
-```
 
 # Conclusion
 
