@@ -232,7 +232,6 @@ The main point is that before `move_mount()` is called a detached mount doesn't 
 To mount a filesystem into a new mount namespace we can make use of the split between configuring a filesystem context and creating a new superblock and actually attaching the mount to the filesystem hiearchy:
 
 ```c
-```
 fd_fs = fsopen("xfs");
 fsconfig(fd_fs, FSCONFIG_SET_STRING, "source", "/dev/sda", 0);
 fsconfig(fd_fs, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
