@@ -33,7 +33,7 @@ The way we solved this problem was by realizing that `mount(2)` was perfectly ha
 So we could verify the whole path and then open the last component of the source and target paths at which point we could call `mount("/proc/self/fd/1234", "/proc/self/fd/5678", ...)`.
 
 We immediately thought that if `mount(2)` allows you to do that then we could easily use this to mount into namespaces.
-So if the container is running it its mount namespace we could just create a bind mount on the host, open the newly created bind mount and then change to the container's mount namespace (and it's owning user namespace) and then simply call `mount("/proc/self/fd/1234", "/mnt", ...)`.
+So if the container is running in its mount namespace we could just create a bind mount on the host, open the newly created bind mount and then change to the container's mount namespace (and it's owning user namespace) and then simply call `mount("/proc/self/fd/1234", "/mnt", ...)`.
 In pseudo C code it would look roughly:
 
 ```c
